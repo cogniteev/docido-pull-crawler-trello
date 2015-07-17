@@ -38,5 +38,9 @@ if __name__ == '__main__':
         zip_safe=True,
         install_requires=[
             'setuptools>=0.6',
-        ]
+        ],
+        entry_points = """
+          [docido.plugins]
+          trello-pull-crawler = dpc_trello.crawler
+        """
     )
