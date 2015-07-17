@@ -1,0 +1,4 @@
+amqpcrawler:
+  build: .
+  external_links:
+    - rabbitmq_service_1:local.docker
