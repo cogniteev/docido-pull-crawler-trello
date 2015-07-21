@@ -37,8 +37,8 @@ class TrelloCrawler(Component):
         print '  oauth_token=%r' % oauth_token
         print '  full=%r' % full
         return [
-           (subtask, {'foo':'fooparam1', 'bar':'barparam1'}),
-           (subtask, {'foo':'fooparam2', 'bar':'barparam2'}),
+            functools.partial(subtask, foo='fooparam1', bar='barparam1'),
+            functools.partial(subtask, foo='fooparam2', bar='barparam2'),
         ]
 
 
