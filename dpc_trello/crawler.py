@@ -52,8 +52,8 @@ class TrelloCrawler(Component):
     def get_account_login(self, oauth_token):
         return 'foo'
 
-    def iter_crawl_tasks(self, index, oauth_token, full=False):
-        trello = _create_trello_client(oauth_token)
+    def iter_crawl_tasks(self, index, token, logger, full=False):
+        trello = _create_trello_client(token)
         return [
             functools.partial(
                 handle_board_cards,
