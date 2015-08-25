@@ -49,9 +49,6 @@ class TrelloCrawler(Component):
     def get_service_name(self):
         return 'trello'
 
-    def get_account_login(self, oauth_token):
-        return 'foo'
-
     def iter_crawl_tasks(self, index, token, logger, full=False):
         trello = _create_trello_client(token)
         return [
