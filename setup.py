@@ -37,7 +37,7 @@ if __name__ == '__main__':
         #test_suite='docido.sdk.test.suite',
         zip_safe=True,
         install_requires=[
-            'setuptools>=0.6',
+            'requests>=2.7.0',
             'py-trello>=0.4.3'
         ],
         entry_points = """
