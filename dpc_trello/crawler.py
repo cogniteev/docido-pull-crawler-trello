@@ -82,6 +82,17 @@ class TrelloClient(object):
             for b in resp.json()
         ]
 
+    def list_board_members(self, board_id, params=None):
+        resp = self._call_api(
+            'get',
+            '/boards/{}/members'.format(board_id),
+            params=params
+        )
+        return [
+            self._convert_to_nameTuple(b)
+            for b in resp.json()
+        ]
+
     def list_board_cards(self, board_id, params=None):
         resp = self._call_api(
             'get',
@@ -122,6 +133,23 @@ def _thumbnail_from_avatarHash(avatar):
     if not avatar:
         return
     return 'https://trello-avatars.s3.amazonaws.com/' + avatar + '/170.png'
+
+
+def handle_board_members(board_id, push_api=None, token=None, logger=None):
+    trello = _create_trello_client(token)
+    members = []
+    params = {'fields': 'all'}
+
+    for member in trello.list_board_members(board_id, params=params):
+        members.append({
+            'id': member.id,
+            'kind': 'contact',
+            'description': member.bio,
+            'name': member.fullName,
+            'username': member.username,
+            'thumbnail': _thumbnail_from_avatarHash(member.avatarHash)
+        })
+    push_api.push_cards(members)
 
 
 def handle_board_cards(board_id, push_api=None, token=None, logger=None):
@@ -199,10 +227,22 @@ class TrelloCrawler(Component):
 
     def iter_crawl_tasks(self, index, token, logger, full=False):
         trello = _create_trello_client(token)
-        return [
+        boards = trello.list_boards()
+        crawl_tasks = []
+        fetch_cards_tasks = [
             functools.partial(
                 handle_board_cards,
                 board.id
             )
-            for board in trello.list_boards()
-        ][:1]
+            for board in boards
+        ]
+        fetch_board_members = [
+            functools.partial(
+                handle_board_members,
+                board.id
+            )
+            for board in boards
+        ]
+        # crawl_tasks.extend(fetch_cards_tasks)
+        crawl_tasks.extend(fetch_board_members)
+        return crawl_tasks
