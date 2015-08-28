@@ -77,6 +77,7 @@ def remove_old_gen(push_api=None, token=None, logger=None):
 
 
 def handle_board_members(board_id, push_api=None, token=None, logger=None):
+    current_gen = _get_last_gen(push_api) + 1
     trello = _create_trello_client(token)
     members = []
     params = {'fields': 'all'}
@@ -87,6 +88,7 @@ def handle_board_members(board_id, push_api=None, token=None, logger=None):
             'kind': 'contact',
             'description': member.bio,
             'name': member.fullName,
+            'gen': current_gen,
             'username': member.username,
             'thumbnail': _thumbnail_from_avatarHash(member.avatarHash)
         })
@@ -94,6 +96,7 @@ def handle_board_members(board_id, push_api=None, token=None, logger=None):
 
 
 def handle_board_cards(board_id, push_api=None, token=None, logger=None):
+    current_gen = _get_last_gen(push_api) + 1
     trello = _create_trello_client(token)
     docido_cards = []
     params = {
@@ -101,6 +104,7 @@ def handle_board_cards(board_id, push_api=None, token=None, logger=None):
         'attachments': 'true',
         'attachment_fields': 'all',
         'members': 'true',
+        'gen': current_gen,
         'member_fields': 'all'
     }
 
