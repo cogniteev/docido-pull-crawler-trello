@@ -63,6 +63,14 @@ class TrelloClient(object):
             for b in resp.json()
         ]
 
+    def list_board_deltas(self, board_id, params=None):
+        resp = self._call_api(
+            'get',
+            '/boards/{}/deltas'.format(board_id),
+            params=params
+        )
+        return resp.json()
+
     def list_board_members(self, board_id, params=None):
         resp = self._call_api(
             'get',

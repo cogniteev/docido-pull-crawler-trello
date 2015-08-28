@@ -51,6 +51,31 @@ def _thumbnail_from_avatarHash(avatar):
     return 'https://trello-avatars.s3.amazonaws.com/' + avatar + '/170.png'
 
 
+def _get_last_gen(push_api):
+    return push_api.get_kv('last_gen') or 0
+
+
+def _set_last_gen_query(push_api, last_gen):
+    push_api.set_kv('last_gen', last_gen)
+
+
+def _generate_last_gen_query(last_gen):
+    return {
+        'range': {
+            'gen': {
+                'gt': last_gen
+            }
+        }
+    }
+
+
+def remove_old_gen(push_api=None, token=None, logger=None):
+    last_gen = _get_last_gen(push_api)
+    last_gen_query = _generate_last_gen_query(last_gen)
+    push_api.delete_cards(last_gen_query)
+    _set_last_gen_query(push_api, last_gen + 1)
+
+
 def handle_board_members(board_id, push_api=None, token=None, logger=None):
     trello = _create_trello_client(token)
     members = []
@@ -161,4 +186,7 @@ class TrelloCrawler(Component):
         ]
         crawl_tasks.extend(fetch_cards_tasks)
         crawl_tasks.extend(fetch_board_members)
-        return crawl_tasks
+        if full:
+            return crawl_tasks
+        else:
+            return crawl_tasks, remove_old_gen
