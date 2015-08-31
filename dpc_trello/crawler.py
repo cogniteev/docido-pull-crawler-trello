@@ -194,3 +194,6 @@ class TrelloCrawler(Component):
             return crawl_tasks
         else:
             return crawl_tasks, remove_old_gen
+
+    def clear_account(self, index, token, logger):
+        """ Remove account data (key-value store and indexed data) """
