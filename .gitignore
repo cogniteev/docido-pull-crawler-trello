@@ -11,6 +11,7 @@ __pycache__/
 env/
 .env
 build/
+src/
 develop-eggs/
 dist/
 downloads/
@@ -57,3 +58,4 @@ docs/_build/
 
 # PyBuilder
 target/
+scripts

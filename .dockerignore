@@ -1,0 +1,8 @@
+.env
+.git
+.eggs
+scripts/
+*.egg-info
+.tox
+Dockerfile
+.dockerignore

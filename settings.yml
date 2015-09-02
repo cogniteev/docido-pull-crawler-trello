@@ -1,83 +1,23 @@
-elasticsearch: &elasticsearch elasticsearch:9200
-
-elasticsearch:
-    ES_CARD_TYPE: item
-    ES_HOST: *elasticsearch
-    ES_INDEX: docido
-
-    ES_STORE_HOST: *elasticsearch
-    ES_STORE_INDEX: store_docido
-    ES_STORE_TYPE: cached_item
-
-    MAPPING:
-        # describe Elasticsearch "docido" index mapping
-        docido:
-            id:
-                type: string
-                index: not_analyzed
-            title:
-                type: string
-            description:
-                type: string
-            date:
-                type: date
-                format: "E MMM d H:m:s Z y||d MMM 'at' H:m||y-M-d'T'H:m:s'Z'||y-M-d'T'H:m:s||y-M-d'T'H:m:s.S||y-M-d'T'H:m:s.SS||yyyy-MM-dd'T'HH:mm:ssZ"
-                locale: en_US.UTF-8
-            kind:
-                type: string
-                index: not_analyzed
-            author.name:
-                properties:
-                    author:
-                        type: nested
-                        properties:
-                            name:
-                                type: string
-                                index: not_analyzed
-            attachments.title:
-                properties:
-                    attachments:
-                        type: nested
-                        properties:
-                            title:
-                                type: string
-            attachments.origin_id:
-                properties:
-                    attachments:
-                        type: nested
-                        properties:
-                            origin_id:
-                                type: string
-                                index: not_analyzed
-            attachments.type:
-                properties:
-                    attachments:
-                        type: nested
-                        properties:
-                            type:
-                                type: string
-            attachments.type:
-                properties:
-                    attachments:
-                        type: nested
-                        properties:
-                            description:
-                                type: string
-
 pull_crawlers:
-    indexing:
-      pipeline:
-        - CheckProcessor
-        - ElasticsearchMapping
-        - Elasticsearch
-        - LocalKV
-
-      check_processor:
+    # Framework enforces content of items pushed by your crawler
+    # forewarn you errors that might occurs downstream.
+    # The 'check_processor' section below describes the list of mandatory
+    # fields expected by the framework.
+    check_processor:
         schemas:
           card:
+              # describes schema of items pushed by your crawler
               options:
-                  extra: true
+                  # all fields specified in the 'content' section
+                  # are mandatory
                   required: true
+                  # additional fields are allowed
+                  extra: true
+
+              # this section describes the mandatory schema.
+              # Syntax is `yamlious` compliant.
+              # See https://github.com/cogniteev/yamlious
+              # for syntax documentation
               content:
                   id: str
                   title: str
@@ -98,16 +38,30 @@ pull_crawlers:
                         type: str
                         description: str
           query:
+            # describes schema of queries made by your crawler
             content:
               query: object
 
     crawlers:
-        trello:
+        # This is the section dedicated to Python pull-crawlers
+        # You can ship as many crawler as you want in one single Python
+        # module.
+        @NAME@:
             indexing:
+                # This section allows you to describe additional fields,
+                # that must be specified in items pushed by your crawler.
+                # This is help you test your crawler more efficiently.
                 check_processor:
                     schemas:
                         card:
                             gen: long
-            mapping:
-                gen:
-                    type: long
+    indexing:
+      pipeline:
+        # The 'pipeline' section specifies the processors used to process
+        # items pushed by your crawlers.
+        # The default settings:
+        # 1. checks schema of pushed items
+        # 2. persist pushed data locally.
+        - CheckProcessor
+        - LocalKV
+        - LocalDumbIndex
