@@ -1,0 +1,67 @@
+pull_crawlers:
+    # Framework enforces content of items pushed by your crawler
+    # forewarn you errors that might occurs downstream.
+    # The 'check_processor' section below describes the list of mandatory
+    # fields expected by the framework.
+    check_processor:
+        schemas:
+          card:
+              # describes schema of items pushed by your crawler
+              options:
+                  # all fields specified in the 'content' section
+                  # are mandatory
+                  required: true
+                  # additional fields are allowed
+                  extra: true
+
+              # this section describes the mandatory schema.
+              # Syntax is `yamlious` compliant.
+              # See https://github.com/cogniteev/yamlious
+              # for syntax documentation
+              content:
+                  id: str
+                  title: str
+                  description: str
+                  date:
+                      All:
+                        - int
+                        - Range:
+                            min: 0
+                  kind: str
+                  author:
+                      nested:
+                          name: str
+                  attachments:
+                    -
+                        title: str
+                        origin_id: str
+                        type: str
+                        description: str
+          query:
+            # describes schema of queries made by your crawler
+            content:
+              query: object
+
+    crawlers:
+        # This is the section dedicated to Python pull-crawlers
+        # You can ship as many crawler as you want in one single Python
+        # module.
+        @NAME@:
+            indexing:
+                # This section allows you to describe additional fields,
+                # that must be specified in items pushed by your crawler.
+                # This is help you test your crawler more efficiently.
+                check_processor:
+                    schemas:
+                        card:
+                            gen: long
+    indexing:
+      pipeline:
+        # The 'pipeline' section specifies the processors used to process
+        # items pushed by your crawlers.
+        # The default settings:
+        # 1. checks schema of pushed items
+        # 2. persist pushed data locally.
+        - CheckProcessor
+        - LocalKV
+        - LocalDumbIndex
