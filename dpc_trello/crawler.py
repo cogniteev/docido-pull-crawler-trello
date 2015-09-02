@@ -30,7 +30,7 @@ def _create_trello_client(token):
 
 def _date_to_timestamp(str_date):
     date = parser.parse(str_date)
-    return time.mktime(date.utctimetuple()) * 1e3 + date.microsecond / 1e3
+    return int(time.mktime(date.utctimetuple()) * 1e3 + date.microsecond / 1e3)
 
 
 def _pick_preview(previews):
@@ -127,6 +127,7 @@ def handle_board_cards(board_id, push_api=None, token=None, logger=None):
             'title': card.name,
             'description': card.desc,
             'date': _date_to_timestamp(card.dateLastActivity),
+            'favorited': card.subscribed,
             'created_at': _date_to_timestamp(card.actions[0].date),
             'author': {
                 'name': author.fullName,

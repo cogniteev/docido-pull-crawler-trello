@@ -62,7 +62,8 @@ if __name__ == '__main__':
         packages=find_packages(exclude=['*.tests']),
         zip_safe=True,
         install_requires=[
-            'docido-sdk==0.0.6'
+            'docido-sdk>=0.0.5',
+            'python-dateutil>=2.4.2'
         ],
         entry_points = """
           [docido.plugins]

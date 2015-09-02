@@ -1,9 +1,78 @@
+elasticsearch: &elasticsearch localhost:13000
+
+elasticsearch:
+    ES_CARD_TYPE: item
+    ES_HOST: *elasticsearch
+    ES_INDEX: docido
+
+    ES_STORE_HOST: *elasticsearch
+    ES_STORE_INDEX: store_docido
+    ES_STORE_TYPE: cached_item
+
+    MAPPING:
+        # describe Elasticsearch "docido" index mapping
+        docido:
+            id:
+                type: string
+                index: not_analyzed
+            title:
+                type: string
+            description:
+                type: string
+            date:
+                type: date
+                format: "E MMM d H:m:s Z y||d MMM 'at' H:m||y-M-d'T'H:m:s'Z'||y-M-d'T'H:m:s||y-M-d'T'H:m:s.S||y-M-d'T'H:m:s.SS||yyyy-MM-dd'T'HH:mm:ssZ"
+                locale: en_US.UTF-8
+            kind:
+                type: string
+                index: not_analyzed
+            author.name:
+                properties:
+                    author:
+                        type: nested
+                        properties:
+                            name:
+                                type: string
+                                index: not_analyzed
+            attachments.title:
+                properties:
+                    attachments:
+                        type: nested
+                        properties:
+                            title:
+                                type: string
+            attachments.origin_id:
+                properties:
+                    attachments:
+                        type: nested
+                        properties:
+                            origin_id:
+                                type: string
+                                index: not_analyzed
+            attachments.type:
+                properties:
+                    attachments:
+                        type: nested
+                        properties:
+                            type:
+                                type: string
+            attachments.type:
+                properties:
+                    attachments:
+                        type: nested
+                        properties:
+                            description:
+                                type: string
+
 pull_crawlers:
-    # Framework enforces content of items pushed by your crawler
-    # forewarn you errors that might occurs downstream.
-    # The 'check_processor' section below describes the list of mandatory
-    # fields expected by the framework.
-    check_processor:
+    indexing:
+      pipeline:
+        - CheckProcessor
+        # - ElasticsearchMapping
+        - Elasticsearch
+        - LocalKV
+
+      check_processor:
         schemas:
           card:
               # describes schema of items pushed by your crawler
@@ -19,24 +88,35 @@ pull_crawlers:
               # See https://github.com/cogniteev/yamlious
               # for syntax documentation
               content:
-                  id: str
-                  title: str
-                  description: str
+                  id: basestring
+                  title: basestring
+                  description: basestring
                   date:
                       All:
                         - int
                         - Range:
                             min: 0
-                  kind: str
+                  kind: basestring
                   author:
                       nested:
-                          name: str
+                          name: basestring
                   attachments:
                     -
-                        title: str
-                        origin_id: str
-                        type: str
-                        description: str
+                        # title: basestring
+                        # origin_id: basestring
+                        type: basestring
+                        # description: basestring
+
+          contact:
+              options:
+                  extra: true
+                  required: true
+              content:
+                  id: basestring
+                  name: basestring
+                  username: basestring
+                  kind: basestring
+
           query:
             # describes schema of queries made by your crawler
             content:
