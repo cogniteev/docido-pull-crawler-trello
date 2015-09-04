@@ -75,47 +75,40 @@ pull_crawlers:
       check_processor:
         schemas:
           card:
-              # describes schema of items pushed by your crawler
-              options:
-                  # all fields specified in the 'content' section
-                  # are mandatory
-                  required: true
-                  # additional fields are allowed
-                  extra: true
+              kind:
+                contact:
+                    options:
+                        extra: true
+                        required: true
+                    content:
+                        id: basestring
+                        name: basestring
+                        username: basestring
+                        kind: basestring
 
-              # this section describes the mandatory schema.
-              # Syntax is `yamlious` compliant.
-              # See https://github.com/cogniteev/yamlious
-              # for syntax documentation
-              content:
-                  id: basestring
-                  title: basestring
-                  description: basestring
-                  date:
-                      All:
-                        - int
-                        - Range:
-                            min: 0
-                  kind: basestring
-                  author:
-                      nested:
-                          name: basestring
-                  attachments:
-                    -
-                        # title: basestring
-                        # origin_id: basestring
-                        type: basestring
-                        # description: basestring
-
-          contact:
-              options:
-                  extra: true
-                  required: true
-              content:
-                  id: basestring
-                  name: basestring
-                  username: basestring
-                  kind: basestring
+              default:
+                options:
+                    extra: true
+                    required: true
+                content:
+                    id: basestring
+                    title: basestring
+                    description: basestring
+                    date:
+                        All:
+                            - int
+                            - Range:
+                                min: 0
+                    kind: basestring
+                    author:
+                        nested:
+                            name: basestring
+                    attachments:
+                        -
+                            # title: basestring
+                            # origin_id: basestring
+                            type: basestring
+                            # description: basestring
 
           query:
             # describes schema of queries made by your crawler
@@ -134,14 +127,12 @@ pull_crawlers:
                 check_processor:
                     schemas:
                         card:
-                            gen: long
-    indexing:
-      pipeline:
-        # The 'pipeline' section specifies the processors used to process
-        # items pushed by your crawlers.
-        # The default settings:
-        # 1. checks schema of pushed items
-        # 2. persist pushed data locally.
-        - CheckProcessor
-        - LocalKV
-        - LocalDumbIndex
+                            default:
+                                gen: long
+                            kind:
+                                contact:
+                                    gen: long
+
+            mapping:
+                gen:
+                    type: long
