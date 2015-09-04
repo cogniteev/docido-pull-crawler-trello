@@ -61,9 +61,11 @@ def _set_last_gen_query(push_api, last_gen):
 
 def _generate_last_gen_query(last_gen):
     return {
-        'range': {
-            'gen': {
-                'gt': last_gen
+        'query': {
+            'range': {
+                'gen': {
+                    'gt': last_gen
+                }
             }
         }
     }
