@@ -5,42 +5,56 @@ pull_crawlers:
     # fields expected by the framework.
     check_processor:
         schemas:
-          card:
-              # describes schema of items pushed by your crawler
-              options:
-                  # all fields specified in the 'content' section
-                  # are mandatory
-                  required: true
-                  # additional fields are allowed
-                  extra: true
+            # describes schema of items pushed by your crawler
+            card:
+                kind:
+                    # describes alternate schema for items based on their kinds
+                    # bellow is an example for a contact kind
+                    # contact:
+                        # options:
+                            # extra: true
+                        # required: true
+                    # content:
+                        # id: unicode
+                        # name: unicode
+                        # username: unicode
+                        # kind: unicode
 
-              # this section describes the mandatory schema.
-              # Syntax is `yamlious` compliant.
-              # See https://github.com/cogniteev/yamlious
-              # for syntax documentation
-              content:
-                  id: str
-                  title: str
-                  description: str
-                  date:
-                      All:
-                        - int
-                        - Range:
-                            min: 0
-                  kind: str
-                  author:
-                      nested:
-                          name: str
-                  attachments:
-                    -
-                        title: str
-                        origin_id: str
-                        type: str
-                        description: str
-          query:
-            # describes schema of queries made by your crawler
-            content:
-              query: object
+            default:
+                # describes default schema for items
+                options:
+                    # all fields specified in the 'content' section
+                    # are mandatory
+                    extra: true
+                    # additional fields are allowed
+                    required: true
+                content:
+                    # this section describes the mandatory schema.
+                    # Syntax is `yamlious` compliant.
+                    # See https://github.com/cogniteev/yamlious
+                    # for syntax documentation
+                    id: unicode
+                    title: unicode
+                    description: unicode
+                    date:
+                        All:
+                            - int
+                            - Range:
+                                min: 0
+                    kind: unicode
+                    author:
+                        nested:
+                            name: unicode
+                    attachments:
+                        -
+                            title: unicode
+                            origin_id: unicode
+                            type: unicode
+                            description: unicode
+
+            query:
+                content:
+                    query: object
 
     crawlers:
         # This is the section dedicated to Python pull-crawlers
