@@ -87,7 +87,7 @@ def handle_board_members(board_id, push_api=None, token=None, logger=None):
     for member in trello.list_board_members(board_id, params=params):
         members.append({
             'id': member.id,
-            'kind': 'contact',
+            'kind': u'contact',
             'description': member.bio,
             'name': member.fullName,
             'gen': current_gen,
@@ -118,7 +118,7 @@ def handle_board_cards(board_id, push_api=None, token=None, logger=None):
         docido_card = {
             'attachments': [
                 {
-                    'type': 'link',
+                    'type': u'link',
                     'url': card.shortUrl
                 }
             ],
@@ -137,11 +137,11 @@ def handle_board_cards(board_id, push_api=None, token=None, logger=None):
             },
             'favorited': card.subscribed,
             'labels': [l.name for l in card.labels],
-            'kind': 'note'
+            'kind': u'note'
         }
         formatted_attachments = [
             {
-                'type': 'link',
+                'type': u'link',
                 'origin_id': a.id,
                 'title': a.name,
                 'url': a.url,
