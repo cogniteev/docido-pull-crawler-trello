@@ -68,26 +68,23 @@ pull_crawlers:
     indexing:
       pipeline:
         - CheckProcessor
-        # - ElasticsearchMapping
+        - ElasticsearchMapping
         - Elasticsearch
         - LocalKV
 
       check_processor:
         schemas:
-            # describes schema of items pushed by your crawler
-            card:
-                kind:
-                    # describes alternate schema for items based on their kinds
-                    # bellow is an example for a contact kind
-                    # contact:
-                        # options:
-                            # extra: true
-                        # required: true
-                    # content:
-                        # id: unicode
-                        # name: unicode
-                        # username: unicode
-                        # kind: unicode
+          card:
+              kind:
+                contact:
+                    options:
+                        extra: true
+                        required: true
+                    content:
+                        id: unicode
+                        name: unicode
+                        username: unicode
+                        kind: unicode
 
             default:
                 # describes default schema for items
@@ -98,10 +95,6 @@ pull_crawlers:
                     # additional fields are allowed
                     required: true
                 content:
-                    # this section describes the mandatory schema.
-                    # Syntax is `yamlious` compliant.
-                    # See https://github.com/cogniteev/yamlious
-                    # for syntax documentation
                     id: unicode
                     title: unicode
                     description: unicode
@@ -116,10 +109,7 @@ pull_crawlers:
                             name: unicode
                     attachments:
                         -
-                            title: unicode
-                            origin_id: unicode
                             type: unicode
-                            description: unicode
 
             query:
                 content:

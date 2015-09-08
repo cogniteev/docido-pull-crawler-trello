@@ -142,6 +142,7 @@ def handle_board_cards(board_id, push_api=None, token=None, logger=None):
         formatted_attachments = [
             {
                 'type': 'link',
+                'origin_id': a.id,
                 'title': a.name,
                 'url': a.url,
                 'date': _date_to_timestamp(a.date),
@@ -176,7 +177,9 @@ class TrelloCrawler(Component):
     def iter_crawl_tasks(self, index, token, logger, full=False):
         trello = _create_trello_client(token)
         boards = trello.list_boards()
-        crawl_tasks = []
+        crawl_tasks = {
+            'tasks': []
+        }
         fetch_cards_tasks = [
             functools.partial(
                 handle_board_cards,
@@ -191,12 +194,13 @@ class TrelloCrawler(Component):
             )
             for board in boards
         ]
-        crawl_tasks.extend(fetch_cards_tasks)
-        crawl_tasks.extend(fetch_board_members)
+        crawl_tasks['tasks'].extend(fetch_cards_tasks)
+        crawl_tasks['tasks'].extend(fetch_board_members)
         if full:
-            return crawl_tasks
-        else:
-            return crawl_tasks, remove_old_gen
+            crawl_tasks['epilogue'] = remove_old_gen
+        return crawl_tasks
 
     def clear_account(self, index, token, logger):
         """ Remove account data (key-value store and indexed data) """
+        index.delete_cards({'query': {'match_all': {}}})
+        index.delete_kvs()
