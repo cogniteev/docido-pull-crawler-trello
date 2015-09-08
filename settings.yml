@@ -67,7 +67,7 @@ pull_crawlers:
                 # This is help you test your crawler more efficiently.
                 check_processor:
                     schemas:
-                        card:
+                        default:
                             gen: long
     indexing:
       pipeline:
