@@ -3,7 +3,7 @@ pull_crawlers:
         # This is the section dedicated to Python pull-crawlers
         # You can ship as many crawler as you want in one single Python
         # module.
-        trello:
+        "@NAME@":
             indexing:
                 # This section allows you to describe additional fields,
                 # that must be specified in items pushed by your crawler.
@@ -13,6 +13,18 @@ pull_crawlers:
                         card:
                             default:
                                 gen: long
+            mapping:
+                # This section allows you to specify mapping of additional
+                # fields for Elasticsearch items representing those pushed
+                # by your crawler.
+                # This is mandatory if your crawler queries Elasticsearch
+                # with custom fields to perform incremental indexing.
+                # For instance, your crawler might query elasticsearch
+                # to know the maximum value of the 'generation' field
+                # of your documents
+                # gen:
+                #     type: long
+
     indexing:
         pipeline:
         # The 'pipeline' section specifies the processors used to process
@@ -25,7 +37,6 @@ pull_crawlers:
             - ElasticsearchMapping
             - Elasticsearch
             - LocalKV
-            - LocalDumbIndex
 
         # Framework enforces content of items pushed by your crawler
         # forewarn you errors that might occurs downstream.
@@ -80,3 +91,82 @@ pull_crawlers:
                 query:
                     content:
                         query: object
+
+# You might need to update this value to reach your Elasticsearch instance
+elasticsearch: &elasticsearch localhost:9200
+
+# This is the basic Elasticsearch configuration.
+# You really don't want to mess with that :)
+elasticsearch:
+    ES_CARD_TYPE: item
+    ES_HOST: *elasticsearch
+    ES_INDEX: docido_crawler_{service}
+
+    ES_STORE_HOST: *elasticsearch
+    ES_STORE_INDEX: store_docido_crawler_{service}
+    ES_STORE_TYPE: cached_item
+
+    MAPPING:
+        # describe Elasticsearch "docido" index mapping
+        docido:
+            id:
+                properties:
+                    id:
+                        type: string
+                        index: not_analyzed
+            title:
+                properties:
+                    title:
+                        type: string
+            description:
+                properties:
+                    description:
+                        type: string
+            date:
+                properties:
+                    date:
+                        type: date
+                        format: "E MMM d H:m:s Z y||d MMM 'at' H:m||y-M-d'T'H:m:s'Z'||y-M-d'T'H:m:s||y-M-d'T'H:m:s.S||y-M-d'T'H:m:s.SS||yyyy-MM-dd'T'HH:mm:ssZ"
+                        locale: en_US.UTF-8
+            kind:
+                properties:
+                    kind:
+                        type: string
+                        index: not_analyzed
+            author.name:
+                properties:
+                    author:
+                        type: nested
+                        properties:
+                            name:
+                                type: string
+                                index: not_analyzed
+            attachments.title:
+                properties:
+                    attachments:
+                        type: nested
+                        properties:
+                            title:
+                                type: string
+            attachments.origin_id:
+                properties:
+                    attachments:
+                        type: nested
+                        properties:
+                            origin_id:
+                                type: string
+                                index: not_analyzed
+            attachments.type:
+                properties:
+                    attachments:
+                        type: nested
+                        properties:
+                            type:
+                                type: string
+            attachments.type:
+                properties:
+                    attachments:
+                        type: nested
+                        properties:
+                            description:
+                                type: string
