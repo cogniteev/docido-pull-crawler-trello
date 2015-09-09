@@ -1,0 +1,25 @@
+# Substitute with the crawler's service name
+crawler_name:
+    # Substitue with the crawl to launch's name
+    full:
+        # Uncomment `config' option below to specify
+        # a custom config file. Default is `settings.yml`
+        # config: settings-mine.yml
+
+        # Uncomment `full` option below to force the scan mode
+        # For the default value, please run command: dcc-run --help
+        # full: true
+
+        token:
+            # Uncomment needed fields and replace with needed value
+            access_token: 'access_token'
+            # refresh_token: 'refresh_token'
+            # token_secret: 'token_secret'
+            # consumer_key: 'consumer_key'
+            # expires: 'expires'
+
+      # Example of secondary crawl description
+      # incremental42:
+      #   full: false
+      #   token:
+      #     access_token: foo
