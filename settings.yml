@@ -1,9 +1,110 @@
-elasticsearch: &elasticsearch localhost:13000
+pull_crawlers:
+    crawlers:
+        # This is the section dedicated to Python pull-crawlers
+        # You can ship as many crawler as you want in one single Python
+        # module.
+        trello:
+            indexing:
+                # This section allows you to describe additional fields,
+                # that must be specified in items pushed by your crawler.
+                # This is help you test your crawler more efficiently.
+                check_processor:
+                    schemas:
+                        card:
+                            default:
+                                gen: long
+                            kind:
+                                contact:
+                                    gen: long
+            mapping:
+                # This section allows you to specify mapping of additional
+                # fields for Elasticsearch items representing those pushed
+                # by your crawler.
+                # This is mandatory if your crawler queries Elasticsearch
+                # with custom fields to perform incremental indexing.
+                # For instance, your crawler might query elasticsearch
+                # to know the maximum value of the 'generation' field
+                # of your documents
+                gen:
+                    type: long
 
+    indexing:
+        pipeline:
+        # The 'pipeline' section specifies the processors used to process
+        # items pushed by your crawlers.
+        # The default settings:
+        # 1. checks schema of pushed items
+        # 2. stores pushed items in Elasticsearch and
+        #    the key-value store locally
+            - CheckProcessor
+            - ElasticsearchMapping
+            - Elasticsearch
+            - LocalKV
+
+        # Framework enforces content of items pushed by your crawler
+        # forewarn you errors that might occurs downstream.
+        # The 'check_processor' section below describes the list of mandatory
+        # fields expected by the framework.
+        check_processor:
+            schemas:
+                # describes schema of items pushed by your crawler
+                card:
+                    kind:
+                        # describes alternate schema for items based on their kinds
+                        # below is an example for a 'contact' kind
+                        contact:
+                            options:
+                                extra: true
+                                required: true
+                            content:
+                                id: unicode
+                                name: unicode
+                                username: unicode
+                                kind: unicode
+
+                    default:
+                        # describes default schema for items
+                        options:
+                            # all fields specified in the 'content' section
+                            # are mandatory
+                            extra: true
+                            # additional fields are allowed
+                            required: true
+                        content:
+                            # this section describes the mandatory schema.
+                            # Syntax is `yamlious` compliant.
+                            # See https://github.com/cogniteev/yamlious
+                            # for syntax documentation
+                            id: unicode
+                            title: unicode
+                            description: unicode
+                            date:
+                                All:
+                                    - int
+                                    - Range:
+                                        min: 0
+                            kind: unicode
+                            author:
+                                nested:
+                                    name: unicode
+                            attachments:
+                                -
+                                    type: unicode
+
+                query:
+                    content:
+                        query: object
+
+
+# You might need to update this value to reach your Elasticsearch instance
+elasticsearch: &elasticsearch local.docker:13000
+
+# This is the basic Elasticsearch configuration.
+# You really don't want to mess with that :)
 elasticsearch:
     ES_CARD_TYPE: item
     ES_HOST: *elasticsearch
-    ES_INDEX: docido
+    ES_INDEX: crawler
 
     ES_STORE_HOST: *elasticsearch
     ES_STORE_INDEX: store_docido
@@ -73,85 +174,3 @@ elasticsearch:
                         properties:
                             description:
                                 type: string
-
-pull_crawlers:
-    indexing:
-      pipeline:
-        - CheckProcessor
-        - ElasticsearchMapping
-        - Elasticsearch
-        - LocalKV
-
-      check_processor:
-        schemas:
-            # describes schema of items pushed by your crawler
-            card:
-                kind:
-                    # describes alternate schema for items based on their kinds
-                    # below is an example for a 'contact' kind
-                    # contact:
-                        # options:
-                            # extra: true
-                            # required: true
-                        # content:
-                            # id: unicode
-                            # name: unicode
-                            # username: unicode
-                            # kind: unicode
-
-                default:
-                    # describes default schema for items
-                    options:
-                        # all fields specified in the 'content' section
-                        # are mandatory
-                        extra: true
-                        # additional fields are allowed
-                        required: true
-                    content:
-                        # this section describes the mandatory schema.
-                        # Syntax is `yamlious` compliant.
-                        # See https://github.com/cogniteev/yamlious
-                        # for syntax documentation
-                        id: unicode
-                        title: unicode
-                        description: unicode
-                        date:
-                            All:
-                                - int
-                                - Range:
-                                    min: 0
-                        kind: unicode
-                        author:
-                            nested:
-                                name: unicode
-                        attachments:
-                            -
-                                type: unicode
-
-            query:
-                content:
-                    query: object
-
-    crawlers:
-        # This is the section dedicated to Python pull-crawlers
-        # You can ship as many crawler as you want in one single Python
-        # module.
-        "@NAME@":
-            indexing:
-                # This section allows you to describe additional fields,
-                # that must be specified in items pushed by your crawler.
-                # This is help you test your crawler more efficiently.
-                check_processor:
-                    schemas:
-                        default:
-                            gen: long
-    indexing:
-        pipeline:
-            # The 'pipeline' section specifies the processors used to process
-            # items pushed by your crawlers.
-            # The default settings:
-            # 1. checks schema of pushed items
-            # 2. persist pushed data locally.
-            - CheckProcessor
-            - LocalKV
-            - LocalDumbIndex
