@@ -71,14 +71,14 @@ def _generate_last_gen_query(last_gen):
     }
 
 
-def remove_old_gen(push_api=None, token=None, logger=None):
+def remove_old_gen(push_api, token, prev_results, logger):
     last_gen = _get_last_gen(push_api)
     last_gen_query = _generate_last_gen_query(last_gen)
     push_api.delete_cards(last_gen_query)
     _set_last_gen_query(push_api, last_gen + 1)
 
 
-def handle_board_members(board_id, push_api=None, token=None, logger=None):
+def handle_board_members(board_id, push_api, token, prev_result, logger):
     current_gen = _get_last_gen(push_api) + 1
     trello = _create_trello_client(token)
     members = []
