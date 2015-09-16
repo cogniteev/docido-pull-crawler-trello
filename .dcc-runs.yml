@@ -1,10 +1,10 @@
 # Substitute with the crawler's service name
-crawler_name:
+trello:
     # Substitue with the crawl to launch's name
     full:
         # Specify proper configuration wether you need Elasticsearch or not
         # to perform incremental indexing.
-
+        config: settings-es.yml
         # Uncomment `full` option below to force the scan mode
         # For the default value, please run command: dcc-run --help
         # full: true
