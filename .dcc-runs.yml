@@ -2,9 +2,9 @@
 crawler_name:
     # Substitue with the crawl to launch's name
     full:
-        # Uncomment `config' option below to specify
-        # a custom config file. Default is `settings.yml`
-        # config: settings-mine.yml
+        # Specify proper configuration wether you need Elasticsearch or not
+        # to perform incremental indexing.
+        config: settings.yml
 
         # Uncomment `full` option below to force the scan mode
         # For the default value, please run command: dcc-run --help
