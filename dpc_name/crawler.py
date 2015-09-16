@@ -28,23 +28,32 @@ class Crawler(Component):
           whether the entire account must be pushed or only
           changes that occured since previous crawl.
 
-        :return: generator of :py:func:`functools.partial` tasks
+        :return: a dictionary instance containing the following keys:
+
+        - 'tasks' (mandatory): generator of :py:func:`functools.partial` tasks
           to execute to perform the account synchronization.
-          partial objects may accept 2 arguments:
+          partial objects may accept 3 arguments:
 
-          - push_api (:py:class:`docido_sdk.push.IndexAPI`)
-          - oauth_token (:py:class:`docido_sdk.oauth.OAuthToken`)
-          - logger (:py:class:`logging.Logger`)
+              - push_api (:py:class:`docido_sdk.push.IndexAPI`)
+              - oauth_token (:py:class:`docido_sdk.oauth.OAuthToken`)
+              - previous_result (:py:class:`object`) previous task result,
+                if any.
+              - logger (:py:class:`logging.Logger`)
 
-          A tuple of 2 elements can also be returned for crawlers
-          willing to perform a final operation when all sub-tasks
-          have been executed. The tuple may be like:
-          `tuple(generator of partial, partial)`
+        - 'epilogue' (optional): a :py:func:`functools.partial` instance
+          to execute when all sub-tasks have been executed. The partial
+          instance may accept the following arguments:
 
-          A task cannot be instance, class, or static method
-          of a :py:func:`docido_sdk.core.Component` object.
-          Therefore you may provide functions defined outside
-          your crawler class definition.
+              - push_api (:py:class:`docido_sdk.push.IndexAPI`)
+              - oauth_token (:py:class:`docido_sdk.oauth.OAuthToken`)
+              - results (a result or a list of results)
+              providing what the sub-tasks returned.
+              - logger (:py:class:`logging.Logger`)
+
+        A task cannot be instance, class, or static method
+        of a :py:func:`docido_sdk.core.Component` object.
+        Therefore you may provide functions defined outside
+        your crawler class definition.
         """
 
     def clear_account(self, index, token, logger):
