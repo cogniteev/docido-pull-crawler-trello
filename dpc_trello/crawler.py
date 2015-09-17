@@ -21,45 +21,47 @@ EncodeError: Can't pickle <type 'instancemethod'>: attribute lookup __builtin__.
 """
 
 
-def _create_trello_client(token):
+def create_trello_client(token):
     return TrelloClient(
         consumer_key=token.consumer_key,
         token=token.access_token
     )
 
 
-def _date_to_timestamp(str_date):
+def date_to_timestamp(str_date):
     date = parser.parse(str_date)
     return int(time.mktime(date.utctimetuple()) * 1e3 + date.microsecond / 1e3)
 
 
-def _pick_preview(previews):
+def pick_preview(previews):
     def preview_size(preview):
-        return preview.height + p.width
+        return preview['height'] + preview['width']
     if not any(previews):
         return None
-    candidates = [p for p in previews if p.height < 300 and p.width < 300]
+    candidates = [
+        p for p in previews if p['height'] < 300 and p['width'] < 300
+    ]
     if any(candidates):
         return max(candidates, key=preview_size)
     else:
         return min(previews, key=preview_size)
 
 
-def _thumbnail_from_avatarHash(avatar):
+def thumbnail_from_avatarHash(avatar):
     if not avatar:
         return
     return 'https://trello-avatars.s3.amazonaws.com/' + avatar + '/170.png'
 
 
-def _get_last_gen(push_api):
+def get_last_gen(push_api):
     return push_api.get_kv('last_gen') or 0
 
 
-def _set_last_gen_query(push_api, last_gen):
+def set_last_gen(push_api, last_gen):
     push_api.set_kv('last_gen', last_gen)
 
 
-def _generate_last_gen_query(last_gen):
+def generate_last_gen_query(last_gen):
     return {
         'query': {
             'range': {
@@ -73,28 +75,28 @@ def _generate_last_gen_query(last_gen):
 
 def remove_old_gen(push_api, token, prev_results, logger):
     logger.info('removing last generation items')
-    last_gen = _get_last_gen(push_api)
-    last_gen_query = _generate_last_gen_query(last_gen)
+    last_gen = get_last_gen(push_api)
+    last_gen_query = generate_last_gen_query(last_gen)
     push_api.delete_cards(last_gen_query)
-    _set_last_gen_query(push_api, last_gen + 1)
+    set_last_gen(push_api, last_gen + 1)
 
 
 def handle_board_members(board_id, push_api, token, prev_result, logger):
     logger.info('fetching members for board: {}'.format(board_id))
-    current_gen = _get_last_gen(push_api) + 1
-    trello = _create_trello_client(token)
+    current_gen = get_last_gen(push_api) + 1
+    trello = create_trello_client(token)
     members = []
     params = {'fields': 'all'}
 
     for member in trello.list_board_members(board_id, params=params):
         members.append({
-            'id': member.id,
+            'id': member['id'],
             'kind': u'contact',
-            'description': member.bio,
-            'name': member.fullName,
+            'description': member['bio'],
+            'name': member['fullName'],
             'gen': current_gen,
-            'username': member.username,
-            'thumbnail': _thumbnail_from_avatarHash(member.avatarHash)
+            'username': member['username'],
+            'thumbnail': thumbnail_from_avatarHash(member['avatarHash'])
         })
     logger.info('indexing members for board: {}'.format(board_id))
     push_api.push_cards(members)
@@ -102,8 +104,8 @@ def handle_board_members(board_id, push_api, token, prev_result, logger):
 
 def handle_board_cards(board_id, push_api, token, prev_result, logger):
     logger.info('fetching cards for board: {}'.format(board_id))
-    current_gen = _get_last_gen(push_api) + 1
-    trello = _create_trello_client(token)
+    current_gen = get_last_gen(push_api) + 1
+    trello = create_trello_client(token)
     docido_cards = []
     params = {
         'actions': 'createCard,copyCard,convertToCardFromCheckItem',
@@ -114,54 +116,54 @@ def handle_board_cards(board_id, push_api, token, prev_result, logger):
     }
 
     for card in trello.list_board_cards(board_id, params=params):
-        if not any(card.actions):
+        if not any(card['actions']):
             # no card creation event, author cannot get inferred
             continue
-        author = card.actions[0].memberCreator
+        author = card['actions'][0]['memberCreator']
         docido_card = {
             'attachments': [
                 {
                     'type': u'link',
-                    'url': card.shortUrl
+                    'url': card['shortUrl']
                 }
             ],
             'to': [
-                {'username': card.email}
+                {'username': card['email']}
             ],
-            'id': card.id,
-            'title': card.name,
+            'id': card['id'],
+            'title': card['name'],
             'gen': current_gen,
-            'description': card.desc,
-            'date': _date_to_timestamp(card.dateLastActivity),
-            'favorited': card.subscribed,
-            'created_at': _date_to_timestamp(card.actions[0].date),
+            'description': card['desc'],
+            'date': date_to_timestamp(card['dateLastActivity']),
+            'favorited': card['subscribed'],
+            'created_at': date_to_timestamp(card['actions'][0]['date']),
             'author': {
-                'name': author.fullName,
-                'username': author.username
+                'name': author['fullName'],
+                'username': author['username']
             },
-            'favorited': card.subscribed,
-            'labels': [l.name for l in card.labels],
+            'favorited': card['subscribed'],
+            'labels': [l['name'] for l in card['labels']],
             'kind': u'note'
         }
         formatted_attachments = [
             {
                 'type': u'link',
-                'origin_id': a.id,
-                'title': a.name,
-                'url': a.url,
-                'date': _date_to_timestamp(a.date),
-                'size': a.bytes,
-                'preview': _pick_preview(a.previews)
+                'origin_id': a['id'],
+                'title': a['name'],
+                'url': a['url'],
+                'date': date_to_timestamp(a['date']),
+                'size': a['bytes'],
+                'preview': pick_preview(a['previews'])
             }
-            for a in card.attachments
+            for a in card['attachments']
         ]
         formatted_members = [
             {
-                'name': m.fullName,
-                'username': m.username,
-                'thumbnail': _thumbnail_from_avatarHash(m.avatarHash)
+                'name': m['fullName'],
+                'username': m['username'],
+                'thumbnail': thumbnail_from_avatarHash(m['avatarHash'])
             }
-            for m in card.members
+            for m in card['members']
         ]
         docido_card['attachments'].extend(formatted_attachments)
         docido_card['to'].extend(formatted_members)
@@ -181,7 +183,7 @@ class TrelloCrawler(Component):
 
     def iter_crawl_tasks(self, index, token, logger, full=False):
         logger.info('generating crawl tasks')
-        trello = _create_trello_client(token)
+        trello = create_trello_client(token)
         boards = trello.list_boards()
         crawl_tasks = {
             'tasks': []
@@ -189,14 +191,14 @@ class TrelloCrawler(Component):
         fetch_cards_tasks = [
             functools.partial(
                 handle_board_cards,
-                board.id
+                board['id']
             )
             for board in boards
         ]
         fetch_board_members = [
             functools.partial(
                 handle_board_members,
-                board.id
+                board['id']
             )
             for board in boards
         ]

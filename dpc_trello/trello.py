@@ -1,7 +1,5 @@
 
-from collections import namedtuple
 import requests
-import json
 
 
 class TrelloClientException(Exception):
@@ -33,34 +31,9 @@ class TrelloClient(object):
             )
         return response
 
-    @staticmethod
-    def _convert_to_nameTuple(obj):
-        def filter_keys(obj):
-            new_obj = {}
-            for k, v in obj.iteritems():
-                if type(v) == dict:
-                    v = filter_keys(v)
-                elif type(v) == list:
-                    if any(v) and type(v[0]) == dict:
-                        v = [filter_keys(entry) for entry in v]
-                new_obj[k if k != '_id' else 'id'] = v
-            return new_obj
-
-        def named_tuple_from_obj(obj):
-            name = 'TrelloObject'
-            return namedtuple(name, obj.keys())(*obj.values())
-
-        return json.loads(
-            json.dumps(filter_keys(obj)),
-            object_hook=named_tuple_from_obj
-        )
-
     def list_boards(self):
         resp = self._call_api('get', '/members/me/boards')
-        return [
-            self._convert_to_nameTuple(b)
-            for b in resp.json()
-        ]
+        return resp.json()
 
     def list_board_members(self, board_id, params=None):
         resp = self._call_api(
@@ -68,10 +41,7 @@ class TrelloClient(object):
             '/boards/{}/members'.format(board_id),
             params=params
         )
-        return [
-            self._convert_to_nameTuple(b)
-            for b in resp.json()
-        ]
+        return resp.json()
 
     def list_board_cards(self, board_id, params=None):
         resp = self._call_api(
@@ -79,7 +49,4 @@ class TrelloClient(object):
             '/boards/{}/cards'.format(board_id),
             params=params
         )
-        return [
-            self._convert_to_nameTuple(c)
-            for c in resp.json()
-        ]
+        return resp.json()
