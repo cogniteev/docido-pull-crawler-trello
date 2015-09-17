@@ -64,7 +64,7 @@ def _generate_last_gen_query(last_gen):
         'query': {
             'range': {
                 'gen': {
-                    'gt': last_gen
+                    'lt': last_gen
                 }
             }
         }
@@ -72,6 +72,7 @@ def _generate_last_gen_query(last_gen):
 
 
 def remove_old_gen(push_api, token, prev_results, logger):
+    logger.info('removing last generation items')
     last_gen = _get_last_gen(push_api)
     last_gen_query = _generate_last_gen_query(last_gen)
     push_api.delete_cards(last_gen_query)
@@ -79,6 +80,7 @@ def remove_old_gen(push_api, token, prev_results, logger):
 
 
 def handle_board_members(board_id, push_api, token, prev_result, logger):
+    logger.info('fetching members for board: {}'.format(board_id))
     current_gen = _get_last_gen(push_api) + 1
     trello = _create_trello_client(token)
     members = []
@@ -94,10 +96,12 @@ def handle_board_members(board_id, push_api, token, prev_result, logger):
             'username': member.username,
             'thumbnail': _thumbnail_from_avatarHash(member.avatarHash)
         })
+    logger.info('indexing members for board: {}'.format(board_id))
     push_api.push_cards(members)
 
 
-def handle_board_cards(board_id, push_api=None, token=None, logger=None):
+def handle_board_cards(board_id, push_api, token, prev_result, logger):
+    logger.info('fetching cards for board: {}'.format(board_id))
     current_gen = _get_last_gen(push_api) + 1
     trello = _create_trello_client(token)
     docido_cards = []
@@ -106,7 +110,6 @@ def handle_board_cards(board_id, push_api=None, token=None, logger=None):
         'attachments': 'true',
         'attachment_fields': 'all',
         'members': 'true',
-        'gen': current_gen,
         'member_fields': 'all'
     }
 
@@ -127,6 +130,7 @@ def handle_board_cards(board_id, push_api=None, token=None, logger=None):
             ],
             'id': card.id,
             'title': card.name,
+            'gen': current_gen,
             'description': card.desc,
             'date': _date_to_timestamp(card.dateLastActivity),
             'favorited': card.subscribed,
@@ -162,6 +166,7 @@ def handle_board_cards(board_id, push_api=None, token=None, logger=None):
         docido_card['attachments'].extend(formatted_attachments)
         docido_card['to'].extend(formatted_members)
         docido_cards.append(docido_card)
+    logger.info('indexing cards for board: {}'.format(board_id))
     push_api.push_cards(docido_cards)
 
 
@@ -175,6 +180,7 @@ class TrelloCrawler(Component):
         return 'foo'
 
     def iter_crawl_tasks(self, index, token, logger, full=False):
+        logger.info('generating crawl tasks')
         trello = _create_trello_client(token)
         boards = trello.list_boards()
         crawl_tasks = {
@@ -196,11 +202,13 @@ class TrelloCrawler(Component):
         ]
         crawl_tasks['tasks'].extend(fetch_cards_tasks)
         crawl_tasks['tasks'].extend(fetch_board_members)
-        if full:
+        logger.info('{} tasks generated'.format(len(crawl_tasks['tasks'])))
+        if not full:
             crawl_tasks['epilogue'] = remove_old_gen
         return crawl_tasks
 
     def clear_account(self, index, token, logger):
         """ Remove account data (key-value store and indexed data) """
+        logger.info('removing all saved cards')
         index.delete_cards({'query': {'match_all': {}}})
         index.delete_kvs()

@@ -28,7 +28,6 @@ class TrelloClient(object):
             data=data
         )
         if response.status_code is not 200:
-            print response.text
             raise TrelloClientException(
                 'API answered with {} status_code'.format(response.status_code)
             )
@@ -62,14 +61,6 @@ class TrelloClient(object):
             self._convert_to_nameTuple(b)
             for b in resp.json()
         ]
-
-    def list_board_deltas(self, board_id, params=None):
-        resp = self._call_api(
-            'get',
-            '/boards/{}/deltas'.format(board_id),
-            params=params
-        )
-        return resp.json()
 
     def list_board_members(self, board_id, params=None):
         resp = self._call_api(
