@@ -202,13 +202,6 @@ class TrelloCrawler(Component):
         ]
         crawl_tasks['tasks'].extend(fetch_cards_tasks)
         crawl_tasks['tasks'].extend(fetch_board_members)
-        logger.info('{} tasks generated'.format(len(crawl_tasks['tasks'])))
-        if not full:
+        if full:
             crawl_tasks['epilogue'] = remove_old_gen
         return crawl_tasks
-
-    def clear_account(self, index, token, logger):
-        """ Remove account data (key-value store and indexed data) """
-        logger.info('removing all saved cards')
-        index.delete_cards({'query': {'match_all': {}}})
-        index.delete_kvs()
