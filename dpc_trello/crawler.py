@@ -202,6 +202,7 @@ class TrelloCrawler(Component):
         ]
         crawl_tasks['tasks'].extend(fetch_cards_tasks)
         crawl_tasks['tasks'].extend(fetch_board_members)
-        if full:
+        logger.info('{} tasks generated'.format(len(crawl_tasks['tasks'])))
+        if not full:
             crawl_tasks['epilogue'] = remove_old_gen
         return crawl_tasks
