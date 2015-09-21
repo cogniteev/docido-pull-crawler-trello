@@ -1,27 +1,22 @@
+"""Actual crawler core code"""
 
 import functools
 
 from docido_sdk.core import Component, implements
 from docido_sdk.crawler import ICrawler
 from dateutil import parser
-from trello import TrelloClient
+from dpc_trello.trello import TrelloClient
 
 import time
 
 
-"""
-FIXME: for now it is not possible to pass an instance function
-nor a static function of class TrelloCrawler in iter_crawl_tasks
-parameters because Celery is not able to serialize it
-
-  File "/goinfre/tristan/src/bitbucket/docido-contrib-crawlers/.env/lib/python2.7/site-packages/kombu/serialization.py"
-  , line 357, in pickle_dumps
-  return dumper(obj, protocol=pickle_protocol)
-EncodeError: Can't pickle <type 'instancemethod'>: attribute lookup __builtin__.instancemethod failed
-"""
-
-
 def create_trello_client(token):
+    """ Create and return a trello client from a provided oauth token
+
+    :param token: a docido_sdk specified OauthToken
+
+    :return: a trello client instance
+    """
     return TrelloClient(
         consumer_key=token.consumer_key,
         token=token.access_token
@@ -29,12 +24,42 @@ def create_trello_client(token):
 
 
 def date_to_timestamp(str_date):
+    """ Convert an str formatted date to an UNIX timestamp
+
+    :param str str_date: An str formatted date
+
+    :return: A valid UNIX timestamp
+    :rtype: int
+    """
+    # pylint: disable=no-member
     date = parser.parse(str_date)
-    return int(time.mktime(date.utctimetuple()) * 1e3 + date.microsecond / 1e3)
+    return int(
+        time.mktime(date.utctimetuple()) * 1e3 + date.microsecond / 1e3
+    )
 
 
 def pick_preview(previews):
+    """ Given a list of preview will pick the one matching specs or the closest
+
+    The returned previews (if any) will respect the following conditions:
+        * Biggest one among those which heights and width are lesser than 300
+        * Smallest available one if no suitable candidate for first case is
+        found
+
+    :param list previews: A list of trello obtained item previews
+
+    :return: The closest specs matching preview or None if no previews is
+    available
+    """
     def preview_size(preview):
+        """ Compute a size for image by adding height and width so previews can
+        easily be filtered and ordered
+
+        :param previwe: A preview to compute size for
+
+        :return: The computed size
+        :rtype: int
+        """
         return preview['height'] + preview['width']
     if not any(previews):
         return None
@@ -47,21 +72,49 @@ def pick_preview(previews):
         return min(previews, key=preview_size)
 
 
-def thumbnail_from_avatarHash(avatar):
-    if not avatar:
+def thumbnail_from_avatar_hash(avatar_hash):
+    """ Generate thumbnail url from avatar hash
+
+    :param str avatar_hash: An avatar hash obtained from trello's API
+
+    :return: the thumbnail url associated with the supplied hash
+    :rtype: str
+    """
+    if not avatar_hash:
         return
-    return 'https://trello-avatars.s3.amazonaws.com/' + avatar + '/170.png'
+    return 'https://trello-avatars.s3.amazonaws.com/' + avatar_hash + '/170.png'
 
 
 def get_last_gen(push_api):
+    """ Retrieve last stored generation from kv store
+
+    :param push_api: The IndexAPI to use to query and retrieve last generation
+
+    :return: Last stored generation for trello cards
+    :rtype: int
+    """
     return push_api.get_kv('last_gen') or 0
 
 
 def set_last_gen(push_api, last_gen):
+    """ Set last kv stored generation to the supplied value
+
+
+    :param push_api: The IndexAPI to use to set last generation
+    :param int last_gen: The last generation to store in kv store
+    """
     push_api.set_kv('last_gen', last_gen)
 
 
 def generate_last_gen_query(last_gen):
+    """ Generate an elasticsearch query to select all document from a previous
+    generation
+
+    :param int last_gent: The generation to select
+
+    :return: A query to select all document with a generation <= to provided
+    last_gen_value
+    """
     return {
         'query': {
             'range': {
@@ -74,6 +127,14 @@ def generate_last_gen_query(last_gen):
 
 
 def remove_old_gen(push_api, token, prev_results, logger):
+    """ Create a docido_sdk compliant task to remove old documents from index
+    (this function should be called for incremental crawls)
+
+    :param push_api: The IndexAPI to use to set last generation
+    :param token: an OauthToken object
+    :param prev_results: Previous tasks results
+    :param logger: A logging.logger instance
+    """
     logger.info('removing last generation items')
     last_gen = get_last_gen(push_api)
     last_gen_query = generate_last_gen_query(last_gen)
@@ -82,6 +143,16 @@ def remove_old_gen(push_api, token, prev_results, logger):
 
 
 def handle_board_members(board_id, push_api, token, prev_result, logger):
+    """ Function template to generate a trello board's members fetch from its
+    ID. The docido_sdk compliant task should be created with functools.partial
+    with a trello obtained board id.
+
+    :param str board_id: the boards' to fetch members IDs
+    :param push_api: The IndexAPI to use
+    :param token: an OauthToken object
+    :param prev_results: Previous tasks results
+    :param logger: A logging.logger instance
+    """
     logger.info('fetching members for board: {}'.format(board_id))
     current_gen = get_last_gen(push_api) + 1
     trello = create_trello_client(token)
@@ -96,13 +167,23 @@ def handle_board_members(board_id, push_api, token, prev_result, logger):
             'name': member['fullName'],
             'gen': current_gen,
             'username': member['username'],
-            'thumbnail': thumbnail_from_avatarHash(member['avatarHash'])
+            'thumbnail': thumbnail_from_avatar_hash(member['avatarHash'])
         })
     logger.info('indexing members for board: {}'.format(board_id))
     push_api.push_cards(members)
 
 
 def handle_board_cards(board_id, push_api, token, prev_result, logger):
+    """ Function template to generate a trello board's cards fetch from its
+    ID. The docido_sdk compliant task should be created with functools.partial
+    with a trello obtained board id.
+
+    :param str board_id: the boards' to fetch members IDs
+    :param push_api: The IndexAPI to use
+    :param token: an OauthToken object
+    :param prev_results: Previous tasks results
+    :param logger: A logging.logger instance
+    """
     logger.info('fetching cards for board: {}'.format(board_id))
     current_gen = get_last_gen(push_api) + 1
     trello = create_trello_client(token)
@@ -141,11 +222,10 @@ def handle_board_cards(board_id, push_api, token, prev_result, logger):
                 'name': author['fullName'],
                 'username': author['username']
             },
-            'favorited': card['subscribed'],
             'labels': [l['name'] for l in card['labels']],
             'kind': u'note'
         }
-        formatted_attachments = [
+        docido_card['attachments'].extend([
             {
                 'type': u'link',
                 'origin_id': a['id'],
@@ -156,32 +236,50 @@ def handle_board_cards(board_id, push_api, token, prev_result, logger):
                 'preview': pick_preview(a['previews'])
             }
             for a in card['attachments']
-        ]
-        formatted_members = [
+        ])
+        docido_card['to'].extend([
             {
                 'name': m['fullName'],
                 'username': m['username'],
-                'thumbnail': thumbnail_from_avatarHash(m['avatarHash'])
+                'thumbnail': thumbnail_from_avatar_hash(m['avatarHash'])
             }
             for m in card['members']
-        ]
-        docido_card['attachments'].extend(formatted_attachments)
-        docido_card['to'].extend(formatted_members)
+        ])
         docido_cards.append(docido_card)
     logger.info('indexing cards for board: {}'.format(board_id))
     push_api.push_cards(docido_cards)
 
 
 class TrelloCrawler(Component):
+    """ The ICrawler implementing class
+    """
+    # implements Icrawler Interface to make it available in the environnment
     implements(ICrawler)
+    service_name = 'trello'
 
     def get_service_name(self):
-        return 'trello'
+        """ Simply return the service_name associated with the crawler
+
+        :return: the service name
+        :rtype: str
+        """
+        return self.service_name
 
     def get_account_login(self, token):
         return 'foo'
 
     def iter_crawl_tasks(self, index, token, logger, full=False):
+        """ Method responsible of generating all tasks needed for trello fetch
+
+        :param index: The IndexAPI to use
+        :param token: an OauthToken object
+        :param logger: A logging.logger instance
+        :param full: Whether to perform a full or incremental crawl
+
+        :return: A dictionnary containing a "tasks" and an optionnal "epilogue"
+        fields (see docido_sdk)
+        :rtype: dict
+        """
         logger.info('generating crawl tasks')
         trello = create_trello_client(token)
         boards = trello.list_boards()

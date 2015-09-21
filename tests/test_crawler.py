@@ -19,8 +19,10 @@ import datetime
 
 class TestTrelloCrawler(unittest.TestCase):
 
+    # mock trello client for this specific test case
     @mock.patch.object(client, 'list_boards')
     def test_crawler_tasks_generation(self, list_boards):
+        # We only use the id field in order to generate tasks
         list_boards.return_value = [{'id': 'test'}]
         logger = mock.Mock()
         token = mock.Mock()
@@ -30,11 +32,13 @@ class TestTrelloCrawler(unittest.TestCase):
         # Full Crawl
         tasks = crawler.iter_crawl_tasks(push_api, token, logger, full=True)
         self.assertIn('tasks', tasks)
+        # A task to retrieve cards the other one members
         self.assertEqual(2, len(tasks['tasks']))
 
         # Incremental Crawl
         tasks_and_epilogue = crawler.iter_crawl_tasks(push_api, token, logger)
         self.assertIn('tasks', tasks_and_epilogue)
+        # A task to retrieve cards the other one members
         self.assertEqual(2, len(tasks['tasks']))
         self.assertIn('epilogue', tasks_and_epilogue)
         self.assertIsInstance(
@@ -50,6 +54,7 @@ class TestTrelloCrawler(unittest.TestCase):
             {'height': 299, 'width': 299},
             {'height': 301, 'width': 301},
         ]
+        # The one with weight and height closer but < to 300 should be picked
         self.assertDictEqual(
             pick_preview(preview_with_candidates),
             {'height': 299, 'width': 299}
@@ -59,6 +64,7 @@ class TestTrelloCrawler(unittest.TestCase):
             {'height': 350, 'width': 350},
             {'height': 400, 'width': 400},
         ]
+        # The smaller one should be picked
         self.assertDictEqual(
             pick_preview(preview_without_candidates),
             {'height': 350, 'width': 350}
@@ -70,12 +76,14 @@ class TestTrelloCrawler(unittest.TestCase):
 
     def test_get_last_gen(self):
         push_api = mock.Mock()
+        # The get_kv method is the only one to get called
         push_api.get_kv.return_value = 1
         self.assertEqual(get_last_gen(push_api), 1)
         push_api.get_kv.assert_called_once_with('last_gen')
 
         push_api.reset_mock()
         push_api.get_kv.return_value = None
+        # If no last_gen is set then 0 should be returned
         self.assertEqual(get_last_gen(push_api), 0)
         push_api.get_kv.assert_called_once_with('last_gen')
 

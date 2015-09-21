@@ -3,6 +3,8 @@ import mock
 from dpc_trello.trello import TrelloClient, TrelloClientException
 
 
+# Patch request.request to mock HTTP responses, an extra parameter will be
+# supplied to each test case
 @mock.patch('requests.request')
 class TestTrelloClient(unittest.TestCase):
     TEST_CONSUMER_KEY = 'a_consumer_key'
