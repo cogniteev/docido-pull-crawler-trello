@@ -4,23 +4,44 @@ import functools
 from docido_sdk.core import Component, implements
 from docido_sdk.crawler import ICrawler
 
+from trello import TrelloClient
+
 """
 FIXME: for now it is not possible to pass an instance function
 nor a static function of class TrelloCrawler in iter_crawl_tasks
 parameters because Celery is not able to serialize it
 
   File "/goinfre/tristan/src/bitbucket/docido-contrib-crawlers/.env/lib/python2.7/site-packages/kombu/serialization.py"
-, line 357, in pickle_dumps
-    return dumper(obj, protocol=pickle_protocol)
+  , line 357, in pickle_dumps
+  return dumper(obj, protocol=pickle_protocol)
 EncodeError: Can't pickle <type 'instancemethod'>: attribute lookup __builtin__.instancemethod failed
 """
 
-def subtask(index=None, oauth_token=None, foo=None, bar=None):
-    print 'start sub-task'
-    print '  index=%r' % index
-    print '  oauth_token=%r' % oauth_token
-    print '  foo=%r' % foo
-    print '  bar=%r' % bar
+
+def _create_trello_client(oauth_token):
+    return TrelloClient(
+        api_key='AN_API_KEY',
+        api_secret='AN_API_SECRET',
+        token=oauth_token
+    )
+
+
+def handle_board_cards(board_id, index=None, oauth_token=None):
+    trello = _create_trello_client(oauth_token)
+    board = trello.get_board(board_id)
+    for card in board.get_cards():
+        docido_card = {
+            'id': card.id,
+            'title': card.name,
+            'description': card.description,
+            'author': {
+                # TODO: find a way to retrieve that information
+            },
+            'kind': 'activity'
+        }
+        import json
+        print json.dumps(docido_card, indent=1)
+
 
 class TrelloCrawler(Component):
     implements(ICrawler)
@@ -32,13 +53,13 @@ class TrelloCrawler(Component):
         return 'foo'
 
     def iter_crawl_tasks(self, index, oauth_token, full=False):
-        print 'start indexing'
-        print '  index=%r' % index
-        print '  oauth_token=%r' % oauth_token
-        print '  full=%r' % full
+        trello = _create_trello_client(oauth_token)
         return [
-            functools.partial(subtask, foo='fooparam1', bar='barparam1'),
-            functools.partial(subtask, foo='fooparam2', bar='barparam2'),
-        ]
-
-
+            functools.partial(
+                handle_board_cards,
+                board.id,
+                index=index,
+                oauth_token=oauth_token
+            )
+            for board in trello.list_boards()
+        ][:1]

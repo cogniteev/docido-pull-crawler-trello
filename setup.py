@@ -38,6 +38,7 @@ if __name__ == '__main__':
         zip_safe=True,
         install_requires=[
             'setuptools>=0.6',
+            'py-trello>=0.4.3'
         ],
         entry_points = """
           [docido.plugins]
