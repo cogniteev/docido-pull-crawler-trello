@@ -5,5 +5,8 @@ install:
 - travis_retry pip install -r requirements-dev.txt
 - travis_retry pip install tox>=2.1.1 coveralls
 script:
-  - tox -e $(echo py$TRAVIS_PYTHON_VERSION | tr -d . )
+- tox -e $(echo py$TRAVIS_PYTHON_VERSION | tr -d . )
 after_success: coveralls --verbose
+notifications:
+  slack:
+    secure: nTwRDnRWdg9/wBqjEBv6ptaJIWwgIbDw50NYdCD96kSk2OsHqIr1QW1qcr0kvwlm9LhjD193OJW9THvsX96ydKEBpmae0AM2JzlA9rScoMu14Xw/LAiZ4zV5hXql0zfEd0pi+eXYKONmuc16N46m1KcsLrtzNeyrFlIWgrXMTYHCX3tRM7VlZ0RCbXbLQjm13TdY6EeMzEkjfuAjoRVWuI9HpApGS6AHLVGsFt/sWRPLAwjV08wMfVyq8lrChj7UIdEydDBK7j9nFogphNQAlCHYPdn0ASAUc4jJHUOp+7+uBMl4lNwgAm5KaS8O4g03yq93UckcKv/SDzkF0VBj86vOA5ggm69c4LKYHZddLHMABVD5hnHrI/NfmcGNSJ6vTl3N570neMceu1qYHV1q4xzjBM5jb/n823rpsiHUDzUNIbDNVpBhq2ZD5KHAnZ0VMAFu/WLpGRahWmBe/GDm35mpwKt+XUv1wsDmychn6NHam5yEoB0RvYpefpk8BGdkYrb/MEOJDRItCzwz/d8LaJKWMChuTPGa42ONugeK+/tj2BGvj+FrISw1Zdzn9jAHp9j8EvCyIYKz3Zn2RgG/Na32RIYTbbSdB37yX2rmlI5wNB2Uc0fCaGMkgDRC4SrMBtVjuJTpybY5LzZEjPgE9bxJ4uqce/ph6JjQetDW7eU=
