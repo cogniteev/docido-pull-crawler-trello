@@ -31,6 +31,8 @@ def date_to_timestamp(str_date):
     :return: A valid UNIX timestamp
     :rtype: int
     """
+    # As pylint cannot infer parser.parse return type because multiple return
+    # types are possible the specific induced error is disabled
     # pylint: disable=no-member
     date = parser.parse(str_date)
     return int(
@@ -137,6 +139,8 @@ def remove_old_gen(push_api, token, prev_results, logger):
     :param prev_results: Previous tasks results
     :param logger: A logging.logger instance
     """
+    # prev result and token are not used but needed to work with docido SDK
+    # pylint: disable=unused-argument
     logger.info('removing last generation items')
     last_gen = get_last_gen(push_api)
     last_gen_query = generate_last_gen_query(last_gen)
@@ -155,6 +159,8 @@ def handle_board_members(board_id, push_api, token, prev_result, logger):
     :param prev_results: Previous tasks results
     :param logger: A logging.logger instance
     """
+    # prev result is not used but needed to work with docido SDK
+    # pylint: disable=unused-argument
     logger.info('fetching members for board: {}'.format(board_id))
     current_gen = get_last_gen(push_api) + 1
     trello = create_trello_client(token)
@@ -186,6 +192,8 @@ def handle_board_cards(board_id, push_api, token, prev_result, logger):
     :param prev_results: Previous tasks results
     :param logger: A logging.logger instance
     """
+    # prev result is not used but needed to work with docido SDK
+    # pylint: disable=unused-argument
     logger.info('fetching cards for board: {}'.format(board_id))
     current_gen = get_last_gen(push_api) + 1
     trello = create_trello_client(token)
@@ -279,6 +287,9 @@ class TrelloCrawler(Component):
         fields (see docido_sdk)
         :rtype: dict
         """
+        # index is not used but needed to work with docido SDK
+        # pylint: disable=unused-argument
+        # pylint: disable=no-self-use
         logger.info('generating crawl tasks')
         trello = create_trello_client(token)
         boards = trello.list_boards()
