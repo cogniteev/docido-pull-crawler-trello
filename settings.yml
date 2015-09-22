@@ -38,15 +38,15 @@ pull_crawlers:
                     kind:
                         # describes alternate schema for items based on their kinds
                         # below is an example for a 'contact' kind
-                        # contact:
-                            # options:
-                                # extra: true
-                                # required: true
-                            # content:
-                                # id: unicode
-                                # name: unicode
-                                # username: unicode
-                                # kind: unicode
+                        contact:
+                            options:
+                                extra: true
+                                required: true
+                            content:
+                                id: unicode
+                                name: unicode
+                                username: unicode
+                                kind: unicode
 
                     default:
                         # describes default schema for items

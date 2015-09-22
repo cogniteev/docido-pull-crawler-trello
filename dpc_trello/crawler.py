@@ -265,9 +265,6 @@ class TrelloCrawler(Component):
         """
         return self.service_name
 
-    def get_account_login(self, token):
-        return 'foo'
-
     def iter_crawl_tasks(self, index, token, logger, full=False):
         """ Method responsible of generating all tasks needed for trello fetch
 

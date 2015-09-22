@@ -3,7 +3,7 @@ pull_crawlers:
         # This is the section dedicated to Python pull-crawlers
         # You can ship as many crawler as you want in one single Python
         # module.
-        "@NAME@":
+        trello:
             indexing:
                 # This section allows you to describe additional fields,
                 # that must be specified in items pushed by your crawler.
@@ -22,8 +22,8 @@ pull_crawlers:
                 # For instance, your crawler might query elasticsearch
                 # to know the maximum value of the 'generation' field
                 # of your documents
-                # gen:
-                #     type: long
+                gen:
+                    type: long
 
     indexing:
         pipeline:
@@ -49,15 +49,15 @@ pull_crawlers:
                     kind:
                         # describes alternate schema for items based on their kinds
                         # below is an example for a 'contact' kind
-                        # contact:
-                            # options:
-                                # extra: true
-                                # required: true
-                            # content:
-                                # id: unicode
-                                # name: unicode
-                                # username: unicode
-                                # kind: unicode
+                        contact:
+                            options:
+                                extra: true
+                                required: true
+                            content:
+                                id: unicode
+                                name: unicode
+                                username: unicode
+                                kind: unicode
 
                     default:
                         # describes default schema for items
@@ -93,7 +93,7 @@ pull_crawlers:
                         query: object
 
 # You might need to update this value to reach your Elasticsearch instance
-elasticsearch: &elasticsearch localhost:9200
+elasticsearch: &elasticsearch local.docker:13000 # localhost:9200
 
 # This is the basic Elasticsearch configuration.
 # You really don't want to mess with that :)
