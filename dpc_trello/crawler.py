@@ -82,7 +82,9 @@ def thumbnail_from_avatar_hash(avatar_hash):
     """
     if not avatar_hash:
         return
-    return 'https://trello-avatars.s3.amazonaws.com/' + avatar_hash + '/170.png'
+    return 'https://trello-avatars.s3.amazonaws.com/{}/170.png'.format(
+        avatar_hash
+    )
 
 
 def get_last_gen(push_api):
