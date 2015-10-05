@@ -5,12 +5,12 @@ source = '@MODULE_NAME@' # 'Trello' for instance
 author = '@AUTHOR@' # Firstname Lastname
 author_email = '@AUTHOR_EMAIL@'
 
-# You should not have to edit content
-# bellow but:
-# - 'install_requires' section
-# - 'docido.plugins' entrypoints. Names don't matter, but values but
-# references every modules providing classes extending
-# `docido_sdk.core.Component`
+# You should not have to edit content below but:
+#
+# - 'install_requires' section if you need additional dependencies
+# - 'docido.plugins' entrypoints if you want to provide multiple crawlers.
+#    Names don't matter, but values but references every modules
+#    providing classes extending `docido_sdk.core.Component`
 
 for v in [source, author, author_email]:
     if v.startswith('@'):
