@@ -66,6 +66,6 @@ if __name__ == '__main__':
         ],
         entry_points = """
           [docido.plugins]
-          trello-pull-crawler = dpc_trello.crawler
-        """
+          {source}-pull-crawler = dpc_{source}.crawler
+        """.format(source=source.lower())
     )
