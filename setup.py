@@ -6,12 +6,12 @@ source = 'Trello'  # 'Trello' for instance
 author = 'Tony Sanchez'  # Firstname Lastname
 author_email = 'tony@cogniteev.com'
 
-# You should not have to edit content
-# bellow but:
-# - 'install_requires' section
-# - 'docido.plugins' entrypoints. Names don't matter, but values but
-# references every modules providing classes extending
-# `docido_sdk.core.Component`
+# You should not have to edit content below but:
+#
+# - 'install_requires' section if you need additional dependencies
+# - 'docido.plugins' entrypoints if you want to provide multiple crawlers.
+#    Names don't matter, but values but references every modules
+#    providing classes extending `docido_sdk.core.Component`
 
 for v in [source, author, author_email]:
     if v.startswith('@'):
@@ -65,11 +65,10 @@ if __name__ == '__main__':
         packages=find_packages(exclude=['*.tests']),
         zip_safe=True,
         install_requires=[
-            'docido-sdk>=0.0.11',
-            'python-dateutil>=2.4.2',
+            'docido-sdk>=0.0.15',
         ],
-        entry_points="""
+        entry_points = """
           [docido.plugins]
-          trello-pull-crawler = dpc_trello.crawler
-        """
+          {source}-pull-crawler = dpc_{source}.crawler
+        """.format(source=source.lower())
     )
