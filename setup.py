@@ -45,7 +45,7 @@ if __name__ == '__main__':
         author=author,
         author_email=author_email,
         url=root_url,
-        ownload_url=root_url + '/get/' + version,
+        download_url=root_url + '/get/' + version,
         license='Apache license version 2.0',
         keywords='cogniteev docido crawler ' + source.lower(),
         classifiers=[
