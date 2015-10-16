@@ -64,7 +64,7 @@ if __name__ == '__main__':
         install_requires=[
             'docido-sdk>=0.0.15',
         ],
-        entry_points = """
+        entry_points="""
           [docido.plugins]
           {source}-pull-crawler = dpc_{source}.crawler
         """.format(source=source.lower())
