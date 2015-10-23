@@ -1,4 +1,3 @@
-
 import os.path as osp
 from setuptools import setup, find_packages
 
@@ -65,7 +64,7 @@ if __name__ == '__main__':
         packages=find_packages(exclude=['*.tests']),
         zip_safe=True,
         install_requires=[
-            'docido-sdk>=0.0.15',
+            'docido-sdk>=0.0.16',
         ],
         entry_points="""
           [docido.plugins]
