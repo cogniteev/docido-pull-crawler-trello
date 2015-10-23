@@ -1,6 +1,4 @@
 
-import functools
-
 from docido_sdk.core import Component, implements
 from docido_sdk.crawler import ICrawler
 
@@ -9,7 +7,7 @@ class Crawler(Component):
     implements(ICrawler)
 
     def get_service_name(self):
-        return '@NAME@' # same as settings.yml in 'pull_crawlers:crawlers'
+        return '@NAME@'  # same as settings.yml in 'pull_crawlers:crawlers'
 
     def iter_crawl_tasks(self, index, token, logger, full=False):
         """Split the crawl in smaller independant actions,

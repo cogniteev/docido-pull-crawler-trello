@@ -1,9 +1,9 @@
 import os.path as osp
 from setuptools import setup, find_packages
 
-source = '@MODULE_NAME@' # 'Trello' for instance
-author = '@AUTHOR@' # Firstname Lastname
-author_email = '@AUTHOR_EMAIL@'
+source = 'name'  # 'Trello' for instance
+author = 'lol'  # Firstname Lastname
+author_email = 'Lol'
 
 # You should not have to edit content below but:
 #
@@ -21,9 +21,11 @@ for v in [source, author, author_email]:
 module_name = 'dpc_' + source.lower()
 module_dir = module_name.replace('-', '_').lower()
 if not osp.isdir(module_dir):
-    raise Exception("Cannot find directory '{}'".format(module_dir) +
+    raise Exception(
+        "Cannot find directory '{}'".format(module_dir) +
         " You may run the following shell command: " +
-        " mv dpc_name {}".format(module_dir))
+        " mv dpc_name {}".format(module_dir)
+    )
 project = 'docido-pull-crawler-' + source.lower()
 root_url = 'https://bitbucket.org/cogniteev/' + project
 # Extract version from module __init__.py
