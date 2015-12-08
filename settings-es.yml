@@ -91,6 +91,7 @@ pull_crawlers:
                 query:
                     content:
                         query: object
+                        nested: object
 
 # You might need to update this value to reach your Elasticsearch instance
 elasticsearch: &elasticsearch local.docker:13000 # localhost:9200

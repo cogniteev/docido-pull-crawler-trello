@@ -114,7 +114,7 @@ def generate_last_gen_query(last_gen):
     """ Generate an elasticsearch query to select all document from a previous
     generation
 
-    :param int last_gent: The generation to select
+    :param int last_gen: The generation to select
 
     :return: A query to select all document with a generation <= to provided
     last_gen_value
@@ -122,11 +122,11 @@ def generate_last_gen_query(last_gen):
     return {
         'query': {
             'range': {
-                'gen': {
+                'private.twitter_id': {
                     'lt': last_gen
-                }
-            }
-        }
+                },
+            },
+        },
     }
 
 
@@ -173,9 +173,9 @@ def handle_board_members(board_id, push_api, token, prev_result, logger):
             'kind': u'contact',
             'description': member['bio'],
             'name': member['fullName'],
-            'gen': current_gen,
             'username': member['username'],
             'thumbnail': thumbnail_from_avatar_hash(member['avatarHash'])
+            'private': dict(twitter_id=current_gen),
         })
     logger.info('indexing members for board: {}'.format(board_id))
     push_api.push_cards(members)
@@ -223,7 +223,7 @@ def handle_board_cards(board_id, push_api, token, prev_result, logger):
             ],
             'id': card['id'],
             'title': card['name'],
-            'gen': current_gen,
+            'private': dict(twitter_id=current_gen),
             'description': card['desc'],
             'date': date_to_timestamp(card['dateLastActivity']),
             'favorited': card['subscribed'],
