@@ -56,7 +56,7 @@ class TestTrelloCrawler(unittest.TestCase):
         ]
         # The one with weight and height closer but < to 300 should be picked
         self.assertDictEqual(
-            pick_preview(preview_with_candidates),
+            pick_preview(preview_with_candidates, full=True),
             {'height': 299, 'width': 299}
         )
 
@@ -66,7 +66,7 @@ class TestTrelloCrawler(unittest.TestCase):
         ]
         # The smaller one should be picked
         self.assertDictEqual(
-            pick_preview(preview_without_candidates),
+            pick_preview(preview_without_candidates, full=True),
             {'height': 350, 'width': 350}
         )
 
@@ -105,7 +105,7 @@ class TestTrelloCrawler(unittest.TestCase):
         push_api.delete_cards.assert_called_once_with({
             'query': {
                 'range': {
-                    'gen': {
+                    'private.twitter_id': {
                         'lt': 0
                     }
                 }
@@ -142,9 +142,9 @@ class TestTrelloCrawler(unittest.TestCase):
         # in order to do that we then retrieve calls[0][1][0]
         call_arg = calls[0][1][0]
         first_card = call_arg[0]
-        self.assertEqual(first_card['thumbnail'], None)
+        self.assertEqual(first_card['author']['thumbnail'], None)
         # last_gen + 1
-        self.assertEqual(first_card['gen'], 1)
+        self.assertEqual(first_card['private']['twitter_id'], 1)
 
     @mock.patch.object(client, 'list_board_cards')
     def test_crawler_fetch_board_cards(self, list_cards):
@@ -224,4 +224,4 @@ class TestTrelloCrawler(unittest.TestCase):
         self.assertEqual(len(first_card['to']), 2)
         self.assertEqual(first_card['labels'], ['foo', 'bar'])
         # last_gen + 1
-        self.assertEqual(first_card['gen'], 1)
+        self.assertEqual(first_card['private']['twitter_id'], 1)

@@ -40,7 +40,7 @@ def date_to_timestamp(str_date):
     )
 
 
-def pick_preview(previews):
+def pick_preview(previews, full=False):
     """ Given a list of preview will pick the one matching specs or the closest
 
     The returned previews (if any) will respect the following conditions:
@@ -72,6 +72,8 @@ def pick_preview(previews):
         preview = max(candidates, key=preview_size)
     else:
         preview = min(previews, key=preview_size)
+    if full:
+        return preview
     return preview[u'url']
 
 
@@ -181,7 +183,8 @@ def handle_board_members(board_id, push_api, token, prev_result, logger):
             },
             'private': dict(twitter_id=current_gen),
         })
-    logger.info('indexing {} members for board: {}'.format(len(members), board_id))
+    logger.info('indexing {} members for board: {}'.format(
+        len(members), board_id))
     push_api.push_cards(members)
 
 
@@ -260,7 +263,8 @@ def handle_board_cards(board_id, push_api, token, prev_result, logger):
             for m in card['members']
         ])
         docido_cards.append(docido_card)
-    logger.info('indexing {} cards for board: {}'.format(len(docido_cards), board_id))
+    logger.info('indexing {} cards for board: {}'.format(
+        len(docido_cards), board_id))
     push_api.push_cards(docido_cards)
 
 
