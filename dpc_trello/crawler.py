@@ -1,13 +1,12 @@
 """Actual crawler core code"""
 
 import functools
+import time
 
 from docido_sdk.core import Component, implements
 from docido_sdk.crawler import ICrawler
 from dateutil import parser
 from dpc_trello.trello import TrelloClient
-
-import time
 
 
 def create_trello_client(token):
