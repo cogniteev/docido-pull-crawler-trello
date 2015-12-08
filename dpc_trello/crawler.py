@@ -69,9 +69,10 @@ def pick_preview(previews):
         p for p in previews if p['height'] < 300 and p['width'] < 300
     ]
     if any(candidates):
-        return max(candidates, key=preview_size)
+        preview = max(candidates, key=preview_size)
     else:
-        return min(previews, key=preview_size)
+        preview = min(previews, key=preview_size)
+    return preview[u'url']
 
 
 def thumbnail_from_avatar_hash(avatar_hash):
@@ -84,7 +85,7 @@ def thumbnail_from_avatar_hash(avatar_hash):
     """
     if not avatar_hash:
         return
-    return 'https://trello-avatars.s3.amazonaws.com/{}/170.png'.format(
+    return u'https://trello-avatars.s3.amazonaws.com/{}/170.png'.format(
         avatar_hash
     )
 
@@ -171,13 +172,16 @@ def handle_board_members(board_id, push_api, token, prev_result, logger):
         members.append({
             'id': member['id'],
             'kind': u'contact',
+            'title': member['fullName'],
             'description': member['bio'],
-            'name': member['fullName'],
-            'username': member['username'],
-            'thumbnail': thumbnail_from_avatar_hash(member['avatarHash'])
+            'author': {
+                'username': member['username'],
+                'thumbnail': thumbnail_from_avatar_hash(member['avatarHash']),
+                'name': member['fullName'],
+            },
             'private': dict(twitter_id=current_gen),
         })
-    logger.info('indexing members for board: {}'.format(board_id))
+    logger.info('indexing {} members for board: {}'.format(len(members), board_id))
     push_api.push_cards(members)
 
 
@@ -256,7 +260,7 @@ def handle_board_cards(board_id, push_api, token, prev_result, logger):
             for m in card['members']
         ])
         docido_cards.append(docido_card)
-    logger.info('indexing cards for board: {}'.format(board_id))
+    logger.info('indexing {} cards for board: {}'.format(len(docido_cards), board_id))
     push_api.push_cards(docido_cards)
 
 
