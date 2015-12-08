@@ -174,6 +174,7 @@ def handle_board_members(board_id, push_api, token, prev_result, logger):
             'id': member['id'],
             'kind': u'contact',
             'title': member['fullName'],
+            'date': None,
             'description': member['bio'],
             'author': {
                 'username': member['username'],
