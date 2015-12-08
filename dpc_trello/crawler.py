@@ -222,7 +222,8 @@ def handle_board_cards(board_id, push_api, token, prev_result, logger):
             'attachments': [
                 {
                     'type': u'link',
-                    'url': card['shortUrl']
+                    'url': card['shortUrl'],
+                    '_analysis': False,
                 }
             ],
             'to': [
@@ -250,7 +251,8 @@ def handle_board_cards(board_id, push_api, token, prev_result, logger):
                 'url': a['url'],
                 'date': date_to_timestamp(a['date']),
                 'size': a['bytes'],
-                'preview': pick_preview(a['previews'])
+                'preview': pick_preview(a['previews']),
+                '_analysis': False,
             }
             for a in card['attachments']
         ])
