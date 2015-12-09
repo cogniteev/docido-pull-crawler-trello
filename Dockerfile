@@ -1,1 +1,1 @@
-FROM cogniteev/docido-contrib-crawlers:latest
+FROM cogniteev/docido-contrib-crawlers:v0.0.17
