@@ -64,7 +64,7 @@ if __name__ == '__main__':
         packages=find_packages(exclude=['*.tests']),
         zip_safe=True,
         install_requires=[
-            'docido-sdk>=0.0.19',
+            'docido-sdk>=0.0.20',
         ],
         entry_points="""
           [docido.plugins]
