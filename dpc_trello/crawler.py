@@ -227,10 +227,8 @@ def handle_board_cards(board_id, push_api, token, prev_result, logger):
                     'type': u'link',
                     'url': card['shortUrl'],
                     '_analysis': False,
+                    'title': 'View card on Trello'
                 }
-            ],
-            'to': [
-                {'username': card['email']}
             ],
             'id': card['id'],
             'title': card['name'],
@@ -241,11 +239,27 @@ def handle_board_cards(board_id, push_api, token, prev_result, logger):
             'created_at': date_to_timestamp(card['actions'][0]['date']),
             'author': {
                 'name': author['fullName'],
-                'username': author['username']
+                'username': author['username'],
+                'thumbnail': thumbnail_from_avatar_hash(author.get('avatarHash')),
             },
             'labels': [l['name'] for l in card['labels']],
+            'flags': 'closed' if card['closed'] else 'open',
             'kind': u'note'
         }
+
+        for kind, link in card['actions'][0].get('data', {}).iteritems():
+            if kind != 'card' and 'shortLink' in link:
+                docido_card['attachments'].append(dict(
+                    type=u'link',
+                    _analysis=False,
+                    url='https://trello.com/{kind}/{url}'.format(
+                        kind=kind[0],
+                        url=link['shortLink']
+                    ),
+                    title=u'View {kind} <b>{name}</b> on Trello'.format(kind=kind,
+                                                                 name=link['name'])
+                ))
+
         docido_card['attachments'].extend([
             {
                 'type': u'link',
@@ -259,14 +273,18 @@ def handle_board_cards(board_id, push_api, token, prev_result, logger):
             }
             for a in card['attachments']
         ])
-        docido_card['to'].extend([
+        docido_card['attachments'].extend([
+            dict(type=u'tag', name=label['name'])
+            for label in card['labels']
+        ])
+        docido_card['to']= [
             {
                 'name': m['fullName'],
                 'username': m['username'],
                 'thumbnail': thumbnail_from_avatar_hash(m['avatarHash'])
             }
             for m in card['members']
-        ])
+        ]
         docido_cards.append(docido_card)
     logger.info('indexing {} cards for board: {}'.format(
         len(docido_cards), board_id))
