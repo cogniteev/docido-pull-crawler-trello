@@ -99,7 +99,10 @@ def get_last_gen(push_api):
     :return: Last stored generation for trello cards
     :rtype: int
     """
-    return push_api.get_kv('last_gen') or 0
+    last_gen = push_api.get_kv('last_gen')
+    if last_gen is not None:
+        return int(last_gen)
+    return 0
 
 
 def set_last_gen(push_api, last_gen):
@@ -109,7 +112,7 @@ def set_last_gen(push_api, last_gen):
     :param push_api: The IndexAPI to use to set last generation
     :param int last_gen: The last generation to store in kv store
     """
-    push_api.set_kv('last_gen', last_gen)
+    push_api.set_kv('last_gen', str(last_gen))
 
 
 def generate_last_gen_query(last_gen):
