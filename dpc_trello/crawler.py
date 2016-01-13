@@ -292,6 +292,10 @@ def handle_board_members(board_id, push_api, token, prev_result, logger):
     trello = create_trello_client(token)
     members = []
     params = {'fields': 'all'}
+    try:
+        bio = markdown.markdown(member['bio'])
+    except:
+        bio = member['bio']
 
     for member in trello.list_board_members(board_id, params=params):
         members.append({
