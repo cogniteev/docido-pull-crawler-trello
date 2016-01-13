@@ -337,8 +337,6 @@ def handle_board_cards(board_id, push_api, token, prev_result, logger):
     url_attachment_label = u'View {kind} {name} on Trello'
 
     for card in trello.list_board_cards(board_id, params=params):
-        import json
-        print json.dumps(card, indent=2)
         if not any(card['actions']):
             # no card creation event, author cannot get inferred
             continue
