@@ -293,9 +293,9 @@ def handle_board_members(board_id, push_api, token, prev_result, logger):
     members = []
     params = {'fields': 'all'}
     try:
-        bio = markdown.markdown(member['bio'])
+        embed = markdown.markdown(member['bio'])
     except:
-        bio = member['bio']
+        embed = None
 
     for member in trello.list_board_members(board_id, params=params):
         members.append({
@@ -304,6 +304,7 @@ def handle_board_members(board_id, push_api, token, prev_result, logger):
             'title': member['fullName'],
             'date': None,
             'description': member['bio'],
+            'embed': embed,
             'author': {
                 'username': member['username'],
                 'thumbnail': thumbnail_from_avatar_hash(member['avatarHash']),
