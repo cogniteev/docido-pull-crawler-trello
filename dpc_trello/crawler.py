@@ -456,7 +456,6 @@ class TrelloCrawler(Component):
         logger.info('generating crawl tasks')
         trello = create_trello_client(token)
         boards = trello.list_boards()
-        boards = filter(lambda b: b['name'] == 'OnCrawl 1.0', boards)
         crawl_tasks = {
             'tasks': []
         }
