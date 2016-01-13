@@ -306,6 +306,14 @@ def handle_board_members(board_id, push_api, token, prev_result, logger):
                 'name': member['fullName'],
             },
             'private': dict(twitter_id=current_gen),
+            'attachments': [
+                {
+                    'type': u'link',
+                    '_analysis': False,
+                    'url': member['url'],
+                    'title': 'View user on Trello',
+                },
+            ]
         })
     logger.info('indexing {} members for board: {}'.format(
         len(members), board_id))
