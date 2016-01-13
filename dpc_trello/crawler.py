@@ -215,12 +215,14 @@ def handle_board_cards(board_id, push_api, token, prev_result, logger):
         'members': 'true',
         'member_fields': 'all'
     }
+    url_attachment_label = u'View {kind} <b>{name}</b> on Trello'
 
     for card in trello.list_board_cards(board_id, params=params):
         if not any(card['actions']):
             # no card creation event, author cannot get inferred
             continue
         author = card['actions'][0]['memberCreator']
+        author_thumbnail = thumbnail_from_avatar_hash(author.get('avatarHash'))
         docido_card = {
             'attachments': [
                 {
@@ -240,10 +242,10 @@ def handle_board_cards(board_id, push_api, token, prev_result, logger):
             'author': {
                 'name': author['fullName'],
                 'username': author['username'],
-                'thumbnail': thumbnail_from_avatar_hash(author.get('avatarHash')),
+                'thumbnail': author_thumbnail,
             },
             'labels': [l['name'] for l in card['labels']],
-            'flags': 'closed' if card['closed'] else 'open',
+            'flags': 'closed' if card.get('closed', False) else 'open',
             'kind': u'note'
         }
 
@@ -256,8 +258,8 @@ def handle_board_cards(board_id, push_api, token, prev_result, logger):
                         kind=kind[0],
                         url=link['shortLink']
                     ),
-                    title=u'View {kind} <b>{name}</b> on Trello'.format(kind=kind,
-                                                                 name=link['name'])
+                    title=url_attachment_label.format(kind=kind,
+                                                      name=link['name'])
                 ))
 
         docido_card['attachments'].extend([
@@ -277,7 +279,7 @@ def handle_board_cards(board_id, push_api, token, prev_result, logger):
             dict(type=u'tag', name=label['name'])
             for label in card['labels']
         ])
-        docido_card['to']= [
+        docido_card['to'] = [
             {
                 'name': m['fullName'],
                 'username': m['username'],
