@@ -90,7 +90,7 @@ class TestTrelloCrawler(unittest.TestCase):
     def test_set_last_gen(self):
         push_api = mock.Mock()
         set_last_gen(push_api, 1)
-        push_api.set_kv.assert_called_once_with('last_gen', 1)
+        push_api.set_kv.assert_called_once_with('last_gen', '1')
 
     def test_remove_old_gen(self):
         logger = mock.Mock()
@@ -101,7 +101,7 @@ class TestTrelloCrawler(unittest.TestCase):
         remove_old_gen(push_api, token, None, logger)
 
         push_api.get_kv.assert_called_once_with('last_gen')
-        push_api.set_kv.assert_called_once_with('last_gen', 1)
+        push_api.set_kv.assert_called_once_with('last_gen', '1')
         push_api.delete_cards.assert_called_once_with({
             'query': {
                 'range': {
@@ -220,8 +220,8 @@ class TestTrelloCrawler(unittest.TestCase):
         # in order to do that we then retrieve calls[0][1][0]
         call_arg = calls[0][1][0]
         first_card = call_arg[0]
-        self.assertEqual(len(first_card['attachments']), 2)
-        self.assertEqual(len(first_card['to']), 2)
+        self.assertEqual(len(first_card['attachments']), 4)
+        self.assertEqual(len(first_card['to']), 1)
         self.assertEqual(first_card['labels'], ['foo', 'bar'])
         # last_gen + 1
         self.assertEqual(first_card['private']['twitter_id'], 1)
