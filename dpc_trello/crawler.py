@@ -206,7 +206,7 @@ def thumbnail_from_avatar_hash(avatar_hash):
     :rtype: str
     """
     if not avatar_hash:
-        return
+        return u''
     return u'https://trello-avatars.s3.amazonaws.com/{}/170.png'.format(
         avatar_hash
     )
