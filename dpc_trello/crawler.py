@@ -399,7 +399,6 @@ def handle_board_cards(board_id, push_api, token, prev_result, logger):
                 'preview': pick_preview(a['previews']),
                 'mime_type': pick_mime_type(a),
                 'filetype': pick_filetype(a),
-                '_analysis': False,
             }
             for a in card['attachments']
         ])
