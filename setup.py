@@ -65,6 +65,7 @@ if __name__ == '__main__':
         zip_safe=True,
         install_requires=[
             'docido-sdk>=0.0.22',
+            'Markdown>=2.6.5',
         ],
         entry_points="""
           [docido.plugins]

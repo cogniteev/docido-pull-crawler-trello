@@ -5,6 +5,8 @@ import mimetypes
 import os.path as osp
 import time
 
+import markdown
+
 from docido_sdk.core import Component, implements
 from docido_sdk.crawler import ICrawler
 from dateutil import parser
@@ -344,6 +346,10 @@ def handle_board_cards(board_id, push_api, token, prev_result, logger):
         author_thumbnail = thumbnail_from_avatar_hash(author.get('avatarHash'))
         labels = [l['name'] for l in card['labels']]
         labels = filter(lambda l: any(l), labels)
+        try:
+            embed = markdown.markdown(card['desc'])
+        except:
+            embed = None
         docido_card = {
             'attachments': [
                 {
@@ -357,6 +363,7 @@ def handle_board_cards(board_id, push_api, token, prev_result, logger):
             'title': card['name'],
             'private': dict(twitter_id=current_gen),
             'description': card['desc'],
+            'embed': embed,
             'date': date_to_timestamp(card['dateLastActivity']),
             'favorited': card['subscribed'],
             'created_at': date_to_timestamp(card['actions'][0]['date']),
