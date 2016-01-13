@@ -292,12 +292,12 @@ def handle_board_members(board_id, push_api, token, prev_result, logger):
     trello = create_trello_client(token)
     members = []
     params = {'fields': 'all'}
-    try:
-        embed = markdown.markdown(member['bio'])
-    except:
-        embed = None
 
     for member in trello.list_board_members(board_id, params=params):
+        try:
+            embed = markdown.markdown(member['bio'])
+        except:
+            embed = None
         members.append({
             'id': member['id'],
             'kind': u'contact',
