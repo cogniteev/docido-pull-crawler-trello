@@ -1,6 +1,8 @@
 """Actual crawler core code"""
 
 import functools
+import mimetypes
+import os.path as osp
 import time
 
 from docido_sdk.core import Component, implements
@@ -74,6 +76,123 @@ def pick_preview(previews, full=False):
     if full:
         return preview
     return preview[u'url']
+
+
+class file_type(object):
+    TYPE_CHECK = {
+        '3gp': 'video',
+        'aaf': 'video',
+        'aiff': 'sound',
+        'ami': 'document',
+        'ape': 'sound',
+        'asc': 'document',
+        'asf': 'video',
+        'ast': 'sound',
+        'au': 'sound',
+        'avchd': 'video',
+        'avi': 'video',
+        'bmp': 'image',
+        'bwf': 'sound',
+        'cdda': 'sound',
+        'csv': 'document',
+        'doc': 'document',
+        'docm': 'document',
+        'docx': 'document',
+        'dot': 'document',
+        'dotx': 'document',
+        'epub': 'document',
+        'flac': 'sound',
+        'flv': 'video',
+        'gdoc': 'document',
+        'gif': 'image',
+        'gslides': 'slide',
+        'jpeg': 'image',
+        'jpg': 'image',
+        'key': 'slide',
+        'keynote': 'slide',
+        'm4a': 'sound',
+        'm4p': 'sound',
+        'm4v': 'video',
+        'mkv': 'video',
+        'mng': 'video',
+        'mov': 'video',
+        'movie': 'video',
+        'mp3': 'sound',
+        'mp4': 'video',
+        'mpe': 'video',
+        'mpeg': 'video',
+        'mpg': 'video',
+        'nb': 'slide',
+        'nbp': 'slide',
+        'nsv': 'video',
+        'odm': 'document',
+        'odp': 'slide',
+        'ods': 'document',
+        'odt': 'document',
+        'ott': 'document',
+        'pages': 'document',
+        'pdf': 'document',
+        'pez': 'slide',
+        'png': 'image',
+        'pot': 'slide',
+        'pps': 'slide',
+        'ppt': 'slide',
+        'pptx': 'slide',
+        'rtf': 'document',
+        'sdw': 'document',
+        'shf': 'slide',
+        'shn': 'sound',
+        'show': 'slide',
+        'shw': 'slide',
+        'swf': 'video',
+        'thmx': 'slide',
+        'txt': 'document',
+        'wav': 'sound',
+        'wma': 'sound',
+        'wmv': 'video',
+        'wpd': 'document',
+        'wps': 'document',
+        'wpt': 'document',
+        'wrd': 'document',
+        'wri': 'document',
+        'xls': 'document',
+        'xlsx': 'document'
+    }
+
+    MIMETYPE_CHECK = {
+        'image/png': 'image',
+        'image/jpeg': 'image',
+        'image/jpg': 'image',
+        'image/gif': 'image',
+        'application/pdf': 'document',
+        'application/vnd.google-apps.document': 'document',
+        'application/vnd.google-apps.spreadsheet': 'document',
+        'application/vnd.google-apps.photo': 'image',
+        'application/vnd.google-apps.drawing': 'image',
+        'application/vnd.google-apps.presentation': 'slide',
+        'application/vnd.google-apps.video': 'video'
+    }
+
+    @classmethod
+    def guess_filetype(cls, filename, mime_type=None):
+        if filename:
+            _, extension = osp.splitext(filename)
+            extension = extension[1:]
+            return cls.TYPE_CHECK.get(extension, 'other')
+        else:
+            return cls.MIMETYPE_CHECK.get(mime_type, 'other')
+
+
+def pick_mime_type(attachment):
+    mime_type = attachment.get('mimeType')
+    if mime_type is not None:
+        return mime_type
+    mime_type, _ = mimetypes.guess_type(attachment['name'])
+    return mime_type
+
+
+def pick_filetype(attachment):
+    return file_type.guess_filetype(attachment['name'])
 
 
 def thumbnail_from_avatar_hash(avatar_hash):
@@ -215,14 +334,18 @@ def handle_board_cards(board_id, push_api, token, prev_result, logger):
         'members': 'true',
         'member_fields': 'all'
     }
-    url_attachment_label = u'View {kind} <b>{name}</b> on Trello'
+    url_attachment_label = u'View {kind} {name} on Trello'
 
     for card in trello.list_board_cards(board_id, params=params):
+        import json
+        print json.dumps(card, indent=2)
         if not any(card['actions']):
             # no card creation event, author cannot get inferred
             continue
         author = card['actions'][0]['memberCreator']
         author_thumbnail = thumbnail_from_avatar_hash(author.get('avatarHash'))
+        labels = [l['name'] for l in card['labels']]
+        labels = filter(lambda l: any(l), labels)
         docido_card = {
             'attachments': [
                 {
@@ -244,7 +367,7 @@ def handle_board_cards(board_id, push_api, token, prev_result, logger):
                 'username': author['username'],
                 'thumbnail': author_thumbnail,
             },
-            'labels': [l['name'] for l in card['labels']],
+            'labels': labels,
             'flags': 'closed' if card.get('closed', False) else 'open',
             'kind': u'note'
         }
@@ -255,29 +378,36 @@ def handle_board_cards(board_id, push_api, token, prev_result, logger):
                     type=u'link',
                     _analysis=False,
                     url='https://trello.com/{kind}/{url}'.format(
-                        kind=kind[0],
+                        kind=kind,
                         url=link['shortLink']
                     ),
                     title=url_attachment_label.format(kind=kind,
                                                       name=link['name'])
                 ))
+                if kind == 'board':
+                    docido_card['attachments'].append(dict(
+                        type=u'notebook',
+                        name=link['name']
+                    ))
 
         docido_card['attachments'].extend([
             {
-                'type': u'link',
+                'type': u'file',
                 'origin_id': a['id'],
                 'title': a['name'],
                 'url': a['url'],
                 'date': date_to_timestamp(a['date']),
                 'size': a['bytes'],
                 'preview': pick_preview(a['previews']),
+                'mime_type': pick_mime_type(a),
+                'filetype': pick_filetype(a),
                 '_analysis': False,
             }
             for a in card['attachments']
         ])
         docido_card['attachments'].extend([
-            dict(type=u'tag', name=label['name'])
-            for label in card['labels']
+            dict(type=u'tag', name=label)
+            for label in labels
         ])
         docido_card['to'] = [
             {
@@ -326,6 +456,7 @@ class TrelloCrawler(Component):
         logger.info('generating crawl tasks')
         trello = create_trello_client(token)
         boards = trello.list_boards()
+        boards = filter(lambda b: b['name'] == 'OnCrawl 1.0', boards)
         crawl_tasks = {
             'tasks': []
         }
