@@ -78,3 +78,10 @@ class TrelloClient(object):
             params=params
         )
         return resp.json()
+
+    def me(self):
+        resp = self._call_api(
+            'get',
+            '/members/me'
+        )
+        return resp.json()
