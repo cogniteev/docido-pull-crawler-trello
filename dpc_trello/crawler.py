@@ -325,7 +325,7 @@ def handle_board_members(board_id, push_api, token, prev_result, logger):
     push_api.push_cards(members)
 
 
-def handle_board_cards(board_id, push_api, token, prev_result, logger):
+def handle_board_cards(me, board_id, push_api, token, prev_result, logger):
     """ Function template to generate a trello board's cards fetch from its
     ID. The docido_sdk compliant task should be created with functools.partial
     with a trello obtained board id.
@@ -356,6 +356,7 @@ def handle_board_cards(board_id, push_api, token, prev_result, logger):
             # no card creation event, author cannot get inferred
             continue
         author = card['actions'][0]['memberCreator']
+        author_id = card['actions'][0]['idMemberCreator']
         author_thumbnail = thumbnail_from_avatar_hash(author.get('avatarHash'))
         labels = [l['name'] for l in card['labels']]
         labels = filter(lambda l: any(l), labels)
@@ -389,6 +390,16 @@ def handle_board_cards(board_id, push_api, token, prev_result, logger):
             'flags': 'closed' if card.get('closed', False) else 'open',
             'kind': u'note'
         }
+        if author_id == me['id']:
+            docido_card['private']['twitter_id'] = 1
+        else:
+            is_member = False
+            for member in card.get('members', []):
+                if member['id'] == me['id']:
+                    is_member = True
+                    break
+            if is_member:
+                docido_card['private']['twitter_id'] = 0
 
         for kind, link in card['actions'][0].get('data', {}).iteritems():
             if kind != 'card' and 'shortLink' in link:
@@ -472,6 +483,7 @@ class TrelloCrawler(Component):
         # pylint: disable=no-self-use
         logger.info('generating crawl tasks')
         trello = create_trello_client(token)
+        me = trello.me()
         boards = trello.list_boards()
         crawl_tasks = {
             'tasks': []
@@ -479,6 +491,7 @@ class TrelloCrawler(Component):
         fetch_cards_tasks = [
             functools.partial(
                 handle_board_cards,
+                me,
                 board['id']
             )
             for board in boards
