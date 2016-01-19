@@ -120,7 +120,8 @@ class TestTrelloCrawler(unittest.TestCase):
                 'bio': 'YOLO',
                 'fullName': 'aFullName',
                 'username': 'aUserName',
-                'avatarHash': None
+                'avatarHash': None,
+                'url': 'member/url'
             }
         ]
         logger = mock.Mock()
@@ -142,9 +143,9 @@ class TestTrelloCrawler(unittest.TestCase):
         # in order to do that we then retrieve calls[0][1][0]
         call_arg = calls[0][1][0]
         first_card = call_arg[0]
-        self.assertEqual(first_card['author']['thumbnail'], None)
+        self.assertEqual(first_card['author']['thumbnail'], u'')
         # last_gen + 1
-        self.assertEqual(first_card['private']['twitter_id'], 1)
+        self.assertEqual(first_card['private']['sync_id'], 1)
 
     @mock.patch.object(client, 'list_board_cards')
     def test_crawler_fetch_board_cards(self, list_cards):
@@ -202,8 +203,12 @@ class TestTrelloCrawler(unittest.TestCase):
 
         push_api.get_kv.return_value = 0
         list_cards.return_value = mocked_cards
+        def me(instance):
+            return dict(id=42)
+        client.me = me
 
-        handle_board_cards('test_boards', push_api, token, None, logger)
+
+        handle_board_cards(me, 'test_boards', push_api, token, None, logger)
 
         list_cards.assert_called_once_with('test_boards', params={
             'attachment_fields': 'all',
@@ -224,4 +229,4 @@ class TestTrelloCrawler(unittest.TestCase):
         self.assertEqual(len(first_card['to']), 1)
         self.assertEqual(first_card['labels'], ['foo', 'bar'])
         # last_gen + 1
-        self.assertEqual(first_card['private']['twitter_id'], 1)
+        self.assertEqual(first_card['private']['sync_id'], 1)
