@@ -5,7 +5,10 @@ import requests
 
 class TrelloClientException(Exception):
     """An exception to throw for trello errors"""
-    pass
+    def __init__(self, response):
+        self.response = response
+        msg = 'API answered with {} status_code'.format(response.status_code)
+        super(TrelloClientException, self).__init__(msg)
 
 
 class TrelloClient(object):
@@ -42,9 +45,7 @@ class TrelloClient(object):
             data=data
         )
         if response.status_code is not 200:
-            raise TrelloClientException(
-                'API answered with {} status_code'.format(response.status_code)
-            )
+            raise TrelloClientException(response)
         return response
 
     def list_boards(self):
