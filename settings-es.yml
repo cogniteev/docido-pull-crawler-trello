@@ -55,8 +55,6 @@ pull_crawlers:
                                 required: true
                             content:
                                 id: unicode
-                                name: unicode
-                                username: unicode
                                 kind: unicode
 
                     default:
