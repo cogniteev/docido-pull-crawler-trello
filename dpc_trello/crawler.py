@@ -248,7 +248,7 @@ def generate_last_gen_query(last_gen):
     return {
         'query': {
             'range': {
-                'private.twitter_id': {
+                'private.sync_id': {
                     'lt': last_gen
                 },
             },
@@ -310,7 +310,7 @@ def handle_board_members(board_id, push_api, token, prev_result, logger):
                 'thumbnail': thumbnail_from_avatar_hash(member['avatarHash']),
                 'name': member['fullName'],
             },
-            'private': dict(twitter_id=current_gen),
+            'private': dict(sync_id=current_gen),
             'attachments': [
                 {
                     'type': u'link',
@@ -374,7 +374,7 @@ def handle_board_cards(board_id, push_api, token, prev_result, logger):
             ],
             'id': card['id'],
             'title': card['name'],
-            'private': dict(twitter_id=current_gen),
+            'private': dict(sync_id=current_gen),
             'description': card['desc'],
             'embed': embed,
             'date': date_to_timestamp(card['dateLastActivity']),
