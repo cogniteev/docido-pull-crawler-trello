@@ -516,11 +516,12 @@ def handle_board_cards(me, board_id, push_api, token, prev_result, logger):
                         extensions=['markdown_checklist.extension']
                     )
                 except:
-                    html_text = text
+                    html_text = None
             else:
                 html_text = text
             docido_card.setdefault('comments', []).append(dict(
-                    text=html_text,
+                    text=text,
+                    embed=html_text,
                     date=timestamp_ms.feeling_lucky(comment['date']),
                     author=dict(
                         name=creator.get('fullName'),
