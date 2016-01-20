@@ -56,7 +56,7 @@ def date_to_timestamp(str_date):
     )
 
 
-def pick_preview(previews, full=False):
+def __pick_preview(previews, full=False):
     """ Given a list of preview will pick the one matching specs or the closest
 
     The returned previews (if any) will respect the following conditions:
@@ -91,6 +91,16 @@ def pick_preview(previews, full=False):
     if full:
         return preview
     return preview[u'url']
+
+def pick_preview(previews, full=False):
+    if not any(previews):
+        return None
+    preview = max(previews, key=lambda p: p['height'] + p['width'])
+    if full:
+        return preview
+    else:
+        return preview['url']
+
 
 
 class file_type(object):
