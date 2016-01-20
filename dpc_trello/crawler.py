@@ -390,7 +390,7 @@ def handle_board_cards(me, board_id, push_api, token, prev_result, logger):
         actions = {}
         for action in card['actions']:
             actions.setdefault(action['type'], []).append(action)
-        if not any(actions.get(CREATE_CARD_ACTION, []):
+        if not any(actions.get(CREATE_CARD_ACTION, [])):
             # no card creation event, author cannot get inferred
             continue
         create_card_a = actions[CREATE_CARD_ACTION][0]
