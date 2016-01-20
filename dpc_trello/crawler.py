@@ -1,8 +1,14 @@
 """Actual crawler core code"""
 
+import codecs
+from contextlib import closing
 import functools
 import mimetypes
 import os.path as osp
+try:
+    from cStringIO import StringIO
+except ImportError:
+    from StringIO import StringIO
 import time
 
 import markdown
@@ -10,10 +16,15 @@ import markdown
 from docido_sdk.core import Component, implements
 from docido_sdk.crawler import ICrawler
 from docido_sdk.toolbox.rate_limits import teb_retry
+from docido_sdk.toolbox.date_ext import timestamp_ms
+from docido_sdk.toolbox.text import to_unicode
 from dateutil import parser
 
 from dpc_trello.trello import TrelloClient, TrelloClientException
 
+UTF8_CODEC = codecs.lookup("utf8")
+CREATE_CARD_ACTION = 'createCard'
+COMMENT_CARD_ACTION = 'commentCard'
 
 def create_trello_client(token):
     """ Create and return a trello client from a provided oauth token
@@ -355,25 +366,52 @@ def handle_board_cards(me, board_id, push_api, token, prev_result, logger):
     trello = create_trello_client(token)
     docido_cards = []
     params = {
-        'actions': 'createCard,copyCard,convertToCardFromCheckItem',
+        'actions': 'createCard,commentCard,copyCard,convertToCardFromCheckItem',
         'attachments': 'true',
         'attachment_fields': 'all',
         'members': 'true',
-        'member_fields': 'all'
+        'member_fields': 'all',
+        'checklists': 'all',
     }
     url_attachment_label = u'View {kind} {name} on Trello'
 
-    for card in trello.list_board_cards(board_id, params=params):
-        if not any(card['actions']):
+    trello_cards = trello.list_board_cards(board_id, params=params)
+    for card in trello_cards:
+        actions = {}
+        for action in card['actions']:
+            actions.setdefault(action['type'], []).append(action)
+        if not any(actions[CREATE_CARD_ACTION]):
             # no card creation event, author cannot get inferred
             continue
-        author = card['actions'][0]['memberCreator']
-        author_id = card['actions'][0]['idMemberCreator']
+        create_card_a = actions[CREATE_CARD_ACTION][0]
+        full_text = StringIO()
+        with closing(full_text):
+            writer = codecs.StreamReaderWriter(
+                full_text,
+                UTF8_CODEC.streamreader, UTF8_CODEC.streamwriter)
+            writer.write(card['desc'])
+            for checklist in card.get('checklists', []):
+                writer.write('\n\n## ')
+                writer.write(checklist['name'])
+                writer.write('\n')
+                for checkItem in checklist.get('checkItems', []):
+                    if checkItem['state'] == 'complete':
+                        writer.write('\n* [x] ')
+                    else:
+                        writer.write('\n* [ ] ')
+                    writer.write(checkItem['name'])
+            description = to_unicode(full_text.getvalue())
+
+        author = create_card_a['memberCreator']
+        author_id = create_card_a['idMemberCreator']
         author_thumbnail = thumbnail_from_avatar_hash(author.get('avatarHash'))
         labels = [l['name'] for l in card['labels']]
         labels = filter(lambda l: any(l), labels)
         try:
-            embed = markdown.markdown(card['desc'])
+            embed = markdown.markdown(
+                description,
+                extensions=['markdown_checklist.extension']
+            )
         except:
             embed = None
         docido_card = {
@@ -388,11 +426,11 @@ def handle_board_cards(me, board_id, push_api, token, prev_result, logger):
             'id': card['id'],
             'title': card['name'],
             'private': dict(sync_id=current_gen),
-            'description': card['desc'],
+            'description': description,
             'embed': embed,
             'date': date_to_timestamp(card['dateLastActivity']),
             'favorited': card['subscribed'],
-            'created_at': date_to_timestamp(card['actions'][0]['date']),
+            'created_at': date_to_timestamp(create_card_a['date']),
             'author': {
                 'name': author['fullName'],
                 'username': author['username'],
@@ -457,6 +495,19 @@ def handle_board_cards(me, board_id, push_api, token, prev_result, logger):
             }
             for m in card['members']
         ]
+        for comment in reversed(actions.get(COMMENT_CARD_ACTION, [])):
+            creator = comment.get('memberCreator', {})
+            thumbnail = thumbnail_from_avatar_hash(creator.get('avatarHash'))
+            docido_card.setdefault('comments', []).append(dict(
+                    text=comment.get('data', {}).get('text'),
+                    date=timestamp_ms.feeling_lucky(comment['date']),
+                    author=dict(
+                        name=creator.get('fullName'),
+                        username=creator.get('username'),
+                        thumbnail=thumbnail
+                    )
+            ))
+        docido_card['comments_count'] = len(docido_card.get('comments', []))
         docido_cards.append(docido_card)
     logger.info('indexing {} cards for board: {}'.format(
         len(docido_cards), board_id))
