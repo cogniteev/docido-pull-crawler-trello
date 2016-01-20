@@ -508,8 +508,19 @@ def handle_board_cards(me, board_id, push_api, token, prev_result, logger):
         for comment in reversed(actions.get(COMMENT_CARD_ACTION, [])):
             creator = comment.get('memberCreator', {})
             thumbnail = thumbnail_from_avatar_hash(creator.get('avatarHash'))
+            text = comment.get('data', {}).get('text')
+            if text is not None:
+                try:
+                    html_text = markdown.markdown(
+                        description,
+                        extensions=['markdown_checklist.extension']
+                    )
+                except:
+                    html_text = text
+            else:
+                html_text = text
             docido_card.setdefault('comments', []).append(dict(
-                    text=comment.get('data', {}).get('text'),
+                    text=html_text,
                     date=timestamp_ms.feeling_lucky(comment['date']),
                     author=dict(
                         name=creator.get('fullName'),
