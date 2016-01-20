@@ -9,8 +9,10 @@ import markdown
 
 from docido_sdk.core import Component, implements
 from docido_sdk.crawler import ICrawler
+from docido_sdk.toolbox.rate_limits import teb_retry
 from dateutil import parser
-from dpc_trello.trello import TrelloClient
+
+from dpc_trello.trello import TrelloClient, TrelloClientException
 
 
 def create_trello_client(token):
@@ -274,6 +276,11 @@ def remove_old_gen(push_api, token, prev_results, logger):
     set_last_gen(push_api, last_gen + 1)
 
 
+@teb_retry(
+    exc=TrelloClientException,
+    when=dict(response__status_code=429),
+    delay='response__headers__Retry-After'
+)
 def handle_board_members(board_id, push_api, token, prev_result, logger):
     """ Function template to generate a trello board's members fetch from its
     ID. The docido_sdk compliant task should be created with functools.partial
@@ -325,6 +332,11 @@ def handle_board_members(board_id, push_api, token, prev_result, logger):
     push_api.push_cards(members)
 
 
+@teb_retry(
+    exc=TrelloClientException,
+    when=dict(response__status_code=429),
+    delay='response__headers__Retry-After'
+)
 def handle_board_cards(me, board_id, push_api, token, prev_result, logger):
     """ Function template to generate a trello board's cards fetch from its
     ID. The docido_sdk compliant task should be created with functools.partial
