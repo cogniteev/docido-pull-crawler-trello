@@ -512,7 +512,7 @@ def handle_board_cards(me, board_id, push_api, token, prev_result, logger):
             if text is not None:
                 try:
                     html_text = markdown.markdown(
-                        description,
+                        text,
                         extensions=['markdown_checklist.extension']
                     )
                 except:
