@@ -401,7 +401,7 @@ def handle_board_cards(me, board_id, push_api, token, prev_result, logger):
                 UTF8_CODEC.streamreader, UTF8_CODEC.streamwriter)
             writer.write(card['desc'])
             for checklist in card.get('checklists', []):
-                writer.write('\n\n## ')
+                writer.write('\n\n### ')
                 writer.write(checklist['name'])
                 writer.write('\n')
                 for checkItem in checklist.get('checkItems', []):
