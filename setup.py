@@ -64,7 +64,7 @@ if __name__ == '__main__':
         packages=find_packages(exclude=['*.tests']),
         zip_safe=True,
         install_requires=[
-            'docido-sdk>=0.0.22',
+            'docido-sdk>=0.0.23',
             'Markdown>=2.6.5',
         ],
         entry_points="""
