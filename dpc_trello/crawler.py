@@ -384,6 +384,11 @@ def handle_board_cards(me, board_id, push_api, token, prev_result, logger):
     )
     url_attachment_label = u'View {kind} {name} on Trello'
 
+    board_lists = {
+        l['id']: l['name']
+        for l in trello.list_board_lists(board_id, fields='name')
+    }
+
     trello_cards = trello.list_board_cards(board_id, **params)
     for card in trello_cards:
         actions = {}
@@ -446,6 +451,7 @@ def handle_board_cards(me, board_id, push_api, token, prev_result, logger):
                 'thumbnail': author_thumbnail,
             },
             'labels': labels,
+            'group_name': board_lists[card['idList']],
             'flags': 'closed' if card.get('closed', False) else 'open',
             'kind': u'note'
         }

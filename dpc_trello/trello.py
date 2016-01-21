@@ -80,6 +80,19 @@ class TrelloClient(object):
         )
         return resp.json()
 
+    def list_board_lists(self, board_id, **params):
+        """ List all lists of a given board
+
+        :param board_id: The board identifier
+        :param params: Parameters as listed on the Trello API documentation
+        """
+        resp = self._call_api(
+            'get',
+            '/boards/{}/lists'.format(board_id),
+            params=params
+        )
+        return resp.json()
+
     def me(self):
         resp = self._call_api(
             'get',
