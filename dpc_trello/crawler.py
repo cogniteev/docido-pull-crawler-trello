@@ -319,9 +319,8 @@ def handle_board_members(board_id, push_api, token, prev_result, logger):
     current_gen = get_last_gen(push_api) + 1
     trello = create_trello_client(token)
     members = []
-    params = {'fields': 'all'}
 
-    for member in trello.list_board_members(board_id, params=params):
+    for member in trello.list_board_members(board_id, fields='all'):
         try:
             embed = markdown.markdown(member['bio'])
         except:
@@ -375,17 +374,17 @@ def handle_board_cards(me, board_id, push_api, token, prev_result, logger):
     current_gen = get_last_gen(push_api) + 1
     trello = create_trello_client(token)
     docido_cards = []
-    params = {
-        'actions': 'createCard,commentCard,copyCard,convertToCardFromCheckItem',
-        'attachments': 'true',
-        'attachment_fields': 'all',
-        'members': 'true',
-        'member_fields': 'all',
-        'checklists': 'all',
-    }
+    params = dict(
+        actions='createCard,commentCard,copyCard,convertToCardFromCheckItem',
+        attachments='true',
+        attachment_fields='all',
+        members='true',
+        member_fields='all',
+        checklists='all',
+    )
     url_attachment_label = u'View {kind} {name} on Trello'
 
-    trello_cards = trello.list_board_cards(board_id, params=params)
+    trello_cards = trello.list_board_cards(board_id, **params)
     for card in trello_cards:
         actions = {}
         for action in card['actions']:

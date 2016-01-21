@@ -54,7 +54,7 @@ class TrelloClient(object):
         resp = self._call_api('get', '/members/me/boards')
         return resp.json()
 
-    def list_board_members(self, board_id, params=None):
+    def list_board_members(self, board_id, **params):
         """ List all members of a given board
 
         :param board_id: The board's to list members from ID
@@ -67,7 +67,7 @@ class TrelloClient(object):
         )
         return resp.json()
 
-    def list_board_cards(self, board_id, params=None):
+    def list_board_cards(self, board_id, **params):
         """ List all cards of a given board
 
         :param board_id: The board's to list cards from ID
