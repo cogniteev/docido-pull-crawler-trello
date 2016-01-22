@@ -466,7 +466,7 @@ def handle_board_cards(me, board_id, push_api, token, prev_result, logger):
             if is_member:
                 docido_card['private']['twitter_id'] = 0
 
-        for kind, link in card['actions'][0].get('data', {}).iteritems():
+        for kind, link in create_card_a.get('data', {}).iteritems():
             if kind != 'card' and 'shortLink' in link:
                 docido_card['attachments'].append(dict(
                     type=u'link',
