@@ -1,1 +1,1 @@
-FROM quay.io/cogniteev/docido-contrib-crawlers:v0.1.6
+FROM quay.io/cogniteev/docido-contrib-crawlers:v1.0
