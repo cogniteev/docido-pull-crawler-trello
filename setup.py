@@ -38,6 +38,8 @@ with open(init_file) as istr:
             break
 version = '.'.join(map(str, __version__))
 
+docido_sdk_version = '0.0.28'
+
 if __name__ == '__main__':
     exec(open('{}/__init__.py'.format(module_name)).read())
     setup(
@@ -64,7 +66,7 @@ if __name__ == '__main__':
         packages=find_packages(exclude=['*.tests']),
         zip_safe=True,
         install_requires=[
-            'docido-sdk>=0.0.26',
+            'docido-sdk>=' + docido_sdk_version,
         ],
         entry_points="""
           [docido.plugins]
