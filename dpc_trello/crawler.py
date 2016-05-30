@@ -279,13 +279,14 @@ def generate_last_gen_query(last_gen):
     }
 
 
-def remove_old_gen(push_api, token, prev_results, logger):
+def remove_old_gen(push_api, token, prev_results, config, logger):
     """ Create a docido_sdk compliant task to remove old documents from index
     (this function should be called for incremental crawls)
 
     :param push_api: The IndexAPI to use to set last generation
     :param token: an OauthToken object
     :param prev_results: Previous tasks results
+    :param nameddict config: Crawl configuration
     :param logger: A logging.logger instance
     """
     # prev result and token are not used but needed to work with docido SDK
@@ -302,7 +303,8 @@ def remove_old_gen(push_api, token, prev_results, logger):
     when=dict(response__status_code=429),
     delay='response__headers__Retry-After'
 )
-def handle_board_members(board_id, push_api, token, prev_result, logger):
+def handle_board_members(board_id, push_api, token, prev_result,
+                         config, logger):
     """ Function template to generate a trello board's members fetch from its
     ID. The docido_sdk compliant task should be created with functools.partial
     with a trello obtained board id.
@@ -311,6 +313,7 @@ def handle_board_members(board_id, push_api, token, prev_result, logger):
     :param push_api: The IndexAPI to use
     :param token: an OauthToken object
     :param prev_results: Previous tasks results
+    :param nameddict prev_result: crawl configuration
     :param logger: A logging.logger instance
     """
     # prev result is not used but needed to work with docido SDK
@@ -357,7 +360,8 @@ def handle_board_members(board_id, push_api, token, prev_result, logger):
     when=dict(response__status_code=429),
     delay='response__headers__Retry-After'
 )
-def handle_board_cards(me, board_id, push_api, token, prev_result, logger):
+def handle_board_cards(me, board_id, push_api, token, prev_result,
+                       config, logger):
     """ Function template to generate a trello board's cards fetch from its
     ID. The docido_sdk compliant task should be created with functools.partial
     with a trello obtained board id.
@@ -366,6 +370,7 @@ def handle_board_cards(me, board_id, push_api, token, prev_result, logger):
     :param push_api: The IndexAPI to use
     :param token: an OauthToken object
     :param prev_results: Previous tasks results
+    :param nameddict config: crawl configuration
     :param logger: A logging.logger instance
     """
     # prev result is not used but needed to work with docido SDK
@@ -556,13 +561,13 @@ class TrelloCrawler(Component):
         """
         return self.service_name
 
-    def iter_crawl_tasks(self, index, token, logger, full=False):
+    def iter_crawl_tasks(self, index, token, config, logger):
         """ Method responsible of generating all tasks needed for trello fetch
 
         :param index: The IndexAPI to use
         :param token: an OauthToken object
+        :param nameddict config: crawl configuration
         :param logger: A logging.logger instance
-        :param full: Whether to perform a full or incremental crawl
 
         :return: A dictionnary containing a "tasks" and an optionnal "epilogue"
         fields (see docido_sdk)
@@ -596,6 +601,6 @@ class TrelloCrawler(Component):
         crawl_tasks['tasks'].extend(fetch_cards_tasks)
         crawl_tasks['tasks'].extend(fetch_board_members)
         logger.info('{} tasks generated'.format(len(crawl_tasks['tasks'])))
-        if not full:
+        if not config.full:
             crawl_tasks['epilogue'] = remove_old_gen
         return crawl_tasks
