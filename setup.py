@@ -38,7 +38,7 @@ with open(init_file) as istr:
             break
 version = '.'.join(map(str, __version__))
 
-docido_sdk_version = '0.0.28'
+docido_sdk_version = '0.2'
 
 if __name__ == '__main__':
     exec(open('{}/__init__.py'.format(module_name)).read())
