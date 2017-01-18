@@ -34,8 +34,3 @@ to run ```$ hash -r```, to update the shell paths).
 
 Some unit tests and code linters are available and configured for the project
 and can easily be run by *pip installing* tox and running it.
-
-
-Please refer to
-
-for further instructions.
