@@ -10,6 +10,9 @@ A trello crawler to make trello data available in
 The development is done using the
 [docido-python-sdk](https://github.com/cogniteev/docido-python-sdk).
 
+Crawlers documentation is available
+[here](https://cogniteev.github.io/docido-python-sdk/)
+
 # Prerequisites
 
 As we need to make some real requests to elasticsearch, a real elasticsearch
@@ -31,3 +34,8 @@ to run ```$ hash -r```, to update the shell paths).
 
 Some unit tests and code linters are available and configured for the project
 and can easily be run by *pip installing* tox and running it.
+
+
+Please refer to
+
+for further instructions.
